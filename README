@@ -4,6 +4,9 @@ Ultimately, we believe in human contribution as captured through the writing pro
 
 This plugin leverages the API from Originality.AI to provide an on-demand, as needed plagiarism (and coming soon -- AI classification) detection. With it, you can cost-effectively provide plagiarism detection for several core Moodle activities (online text assignments, forums, and quizzes). Teachers have the ability to scan any submission and easily see the results right in Moodle or by opening the full report. 
 
+Updated 11/21/23: 
+Fixes to database table names, calls, and functions to prepare for the Moodle.org plugin repository submission. 
+
 If you have questions or comments, please reach out to us at contact@cursivetechnology.com
 
 Installing via uploaded ZIP file Log in to your Moodle site as an admin and go to Site Administration > Plugins > Install plugins. Upload the ZIP file with the plugin code. You should only be prompted to add extra details if your plugin type is not automatically detected. Check the plugin validation report and finish the installation. Afterward, log in to your Moodle site as an admin and go to Site Administration > Notifications to complete the installation.
