@@ -3,7 +3,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $capabilities = array(
-    'plagiarism/originalityai:enable' => array(
+    'plagiarism/origai:enable' => array(
         'captype' => 'write',
         'contextlevel' => CONTEXT_COURSE,
         'legacy' => array(
@@ -11,7 +11,7 @@ $capabilities = array(
             'manager' => CAP_ALLOW
         )
     ),
-    'plagiarism/originalityai:viewfullreport' => array(
+    'plagiarism/origai:viewfullreport' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_COURSE,
         'legacy' => array(

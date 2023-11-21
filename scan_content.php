@@ -1,6 +1,7 @@
 <?php
 
 require_once('../../config.php');
+require_once($CFG->libdir . '/filelib.php');
 
 $cmid = required_param('cmid', PARAM_INT);
 $itemid = optional_param('itemid',0,PARAM_INT);
@@ -16,50 +17,35 @@ require_login();
 $coursemodule = get_coursemodule_from_id('',    $cmid);
 $context = context_course::instance($coursemodule->course);
 
-//Check if user has capability
-if (!has_capability('mod/assign:grade', $context)) {
-    return;
-}
+require_capability('mod/assign:grade', $context);
 
-$apikey = get_config('plagiarism_originalityai', 'apikey');
-$apibaseurl = get_config('plagiarism_originalityai', 'apiurl');
+$apikey = get_config('plagiarism_origai', 'apikey');
+$apibaseurl = get_config('plagiarism_origai', 'apiurl');
 $apiurl = $apibaseurl . '/scan/plag';
 
 if (empty($apikey) || empty($apiurl)) {
     //redirect to grade/submission page with message that plugin is not configured.
 }
-$curl = curl_init();
-//fetch content from the database
+
+$c = new curl();
+$c->setHeader(['Accept: application/json']);
+$c->setHeader(['X-OAI-API-KEY: ' . $apikey]);
+$c->setHeader(['Content-Type: application/json']);
+
+// //fetch content from the database
 $recordObj = $DB->get_record('plagiarism_origai_plagscan', array('cmid' => $cmid, 'userid' => $userid,'itemid'=>$itemid));
 if (isset($recordObj->content)) {
-    $request_string = json_encode(
-        array(
-            'content' =>html_to_text($recordObj->content,0),
-            'storeScan' => "\"false\""
-        )
-    );
-    curl_setopt_array($curl, array(
-        CURLOPT_URL => $apiurl,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS => $request_string,
-        CURLOPT_HTTPHEADER => array(
-            'Accept: application/json',
-            'X-OAI-API-KEY: ' . $apikey,
-            'Content-Type: application/json'
-        ),
-    ));
-
-    curl_setopt($curl, CURLOPT_VERBOSE, true);
-    $response = curl_exec($curl);
-
-    $responseObj = json_decode($response);
-    $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
+     $request_string = json_encode(
+         array(
+             'content' =>html_to_text($recordObj->content,0),
+             'storeScan' => "\"false\""
+         )
+     );
+$response = $c->post($apiurl,$request_string);
+$responseObj = json_decode($response);
+$info = $c->get_info();
+$httpcode = $info['http_code'];
+    
     if ($httpcode == 200) {
         $recordObj->success = $responseObj->success;
         $recordObj->public_link = $responseObj->public_link;
@@ -96,7 +82,6 @@ if (isset($recordObj->content)) {
         $DB->update_record('plagiarism_origai_plagscan', $recordObj);
     }
 
-    curl_close($curl);
-    $url = new moodle_url('/plagiarism/originalityai/plagiarism_originalityai_report.php', array('cmid' => $cmid, 'itemid'=>$itemid, 'userid'=>$userid,'modulename'=>$modulename));
+    $url = new moodle_url('/plagiarism/origai/plagiarism_origai_report.php', array('cmid' => $cmid, 'itemid'=>$itemid, 'userid'=>$userid,'modulename'=>$modulename));
     redirect($url);
 }

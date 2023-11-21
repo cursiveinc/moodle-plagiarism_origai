@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB PATH="plagiarism/originalityai/db" VERSION="20231031" COMMENT="XMLDB file for Moodle plagiarism/originalityai"
+<XMLDB PATH="plagiarism/origai/db" VERSION="20231031" COMMENT="XMLDB file for Moodle plagiarism/origai"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
@@ -15,7 +15,7 @@
         <KEY NAME="pk" TYPE="primary" FIELDS="id"/>
       </KEYS>
     </TABLE>
-    <TABLE NAME="plagiarism_origai_plagscan" COMMENT="stores plagiarism scan result from originalityai">
+    <TABLE NAME="plagiarism_origai_plagscan" COMMENT="stores plagiarism scan result from origai">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
         <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>

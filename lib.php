@@ -24,7 +24,7 @@ if (!defined('MOODLE_INTERNAL')) {
 global $CFG;
 require_once($CFG->dirroot . '/plagiarism/lib.php');
 
-class plagiarism_plugin_originalityai extends plagiarism_plugin
+class plagiarism_plugin_origai extends plagiarism_plugin
 {
     /**
      * hook to allow plagiarism specific information to be displayed beside a submission 
@@ -66,10 +66,10 @@ class plagiarism_plugin_originalityai extends plagiarism_plugin
             );
         }
 
-        // Get OriginalityAI plugin admin config.
+        // Get origai plugin admin config.
         static $adminconfig;
         if (empty($adminconfig)) {
-            $adminconfig = get_config('plagiarism_originalityai');
+            $adminconfig = get_config('plagiarism_origai');
         }
 
         static $context;
@@ -83,7 +83,7 @@ class plagiarism_plugin_originalityai extends plagiarism_plugin
 
         if (!empty($linkarray["cmid"] && (!empty($linkarray["content"]))) && $isinstructor) {
 
-            if (!is_plugin_configured("mod_" . $coursemodule->modname)) {
+            if (!plagiarism_origai_is_plugin_configured("mod_" . $coursemodule->modname)) {
                 return;
             }
 
@@ -102,13 +102,13 @@ class plagiarism_plugin_originalityai extends plagiarism_plugin
 
             //if response exists, show the total text score along with link to the report
             if ($response && $response->success == true) {
-                $reporturl = "$CFG->wwwroot/plagiarism/originalityai/plagiarism_originalityai_report.php" .
+                $reporturl = "$CFG->wwwroot/plagiarism/origai/plagiarism_origai_report.php" .
                     "?cmid=$cmid&itemid=$itemid&userid=$userid&modulename=$coursemodule->modname";
-                $output = "<div class='originalityai-getscan-button'>" .
+                $output = "<div class='origai-getscan-button'>" .
                     html_writer::link(
                         "$reporturl",
-                        get_string('matchpercentage', 'plagiarism_originalityai') . $response->total_text_score,
-                        array('class' => 'originalityai-getscan-button')
+                        get_string('matchpercentage', 'plagiarism_origai') . $response->total_text_score,
+                        array('class' => 'origai-getscan-button')
                     )
                     .
                     "</div>";
@@ -131,13 +131,13 @@ class plagiarism_plugin_originalityai extends plagiarism_plugin
                     $DB->insert_record('plagiarism_origai_plagscan', $respObj);
                 }
 
-                $getscanurl = "$CFG->wwwroot/plagiarism/originalityai/scan_content.php" .
+                $getscanurl = "$CFG->wwwroot/plagiarism/origai/scan_content.php" .
                     "?cmid=$cmid&itemid=$itemid&userid=$userid&coursemodule=$coursemodule->modname";
-                $output = "<div class='originalityai-getscan-button'>" .
+                $output = "<div class='origai-getscan-button'>" .
                     html_writer::link(
                         "$getscanurl",
-                        get_string('plagiarismscan', 'plagiarism_originalityai'),
-                        array('class' => 'originalityai-getscan-button')
+                        get_string('plagiarismscan', 'plagiarism_origai'),
+                        array('class' => 'origai-getscan-button')
                     )
                     .
                     "</div>";
@@ -160,34 +160,34 @@ class plagiarism_plugin_originalityai extends plagiarism_plugin
         //$mform->disabledIf('plagiarism_draft_submit', 'var4', 'eq', 0);
         global $DB, $CFG;
 
-        if (has_capability('plagiarism/originalityai:enable', $context)) {
+        if (has_capability('plagiarism/origai:enable', $context)) {
 
             // Return no form if the plugin isn't configured or not enabled.
-            if (!is_plugin_configured($modulename)) {
+            if (!plagiarism_origai_is_plugin_configured($modulename)) {
                 return;
             }
 
             $mform->addElement(
                 'header',
-                'plagiarism_originalityai_defaultsettings',
-                get_string('origaicoursesettings', 'plagiarism_originalityai')
+                'plagiarism_origai_defaultsettings',
+                get_string('origaicoursesettings', 'plagiarism_origai')
             );
 
             $mform->addElement(
                 'advcheckbox',
-                'plagiarism_originalityai_enable',
-                get_string('originalityaienable', 'plagiarism_originalityai')
+                'plagiarism_origai_enable',
+                get_string('origaienable', 'plagiarism_origai')
             );
 
             $cmid = optional_param('update', null, PARAM_INT);
             $savedvalues = $DB->get_records_menu('plagiarism_origai_config', array('cm' => $cmid), '', 'name,value');
             if (count($savedvalues) > 0) {
                 $mform->setDefault(
-                    'plagiarism_originalityai_enable',
-                    isset($savedvalues['plagiarism_originalityai_enable']) ? $savedvalues['plagiarism_originalityai_enable'] : 0
+                    'plagiarism_origai_enable',
+                    isset($savedvalues['plagiarism_origai_enable']) ? $savedvalues['plagiarism_origai_enable'] : 0
                 );
             } else {
-                $mform->setDefault('plagiarism_originalityai_enable', false);
+                $mform->setDefault('plagiarism_origai_enable', false);
             }
         }
     }
@@ -200,7 +200,7 @@ class plagiarism_plugin_originalityai extends plagiarism_plugin
         global $DB;
 
         // Return no form if the plugin isn't configured or not enabled.
-        if (empty($data->modulename) && is_plugin_configured('mod_' . $data->modulename)) {
+        if (empty($data->modulename) && plagiarism_origai_is_plugin_configured('mod_' . $data->modulename)) {
             return;
         }
 
@@ -208,67 +208,30 @@ class plagiarism_plugin_originalityai extends plagiarism_plugin
         if (!$savedrecord) {
             $mod_config = new stdClass();
             $mod_config->cm = $data->coursemodule;
-            $mod_config->name = 'plagiarism_originalityai_enable';
+            $mod_config->name = 'plagiarism_origai_enable';
             $mod_config->value = 0;
             //insert a record
             $DB->insert_record('plagiarism_origai_config', $mod_config);
         } else {
             //update existing record
-            $savedrecord->value = $data->plagiarism_originalityai_enable;
+            $savedrecord->value = $data->plagiarism_origai_enable;
             $DB->update_record('plagiarism_origai_config', $savedrecord);
         }
     }
-
-    /**
-     * hook to allow a disclosure to be printed notifying users what will happen with their submission
-     * @param int $cmid - course module id
-     * @return string
-     */
-    public function print_disclosure($cmid)
-    {
-        global $OUTPUT;
-        $plagiarismsettings = (array)get_config('plagiarism');
-        //TODO: check if this cmid has plagiarism enabled.
-        echo $OUTPUT->box_start('generalbox boxaligncenter', 'intro');
-        $formatoptions = new stdClass;
-        $formatoptions->noclean = true;
-        echo format_text($plagiarismsettings['originalityai_student_disclosure'], FORMAT_MOODLE, $formatoptions);
-        echo $OUTPUT->box_end();
-    }
-
-    /**
-     * hook to allow status of submitted files to be updated - called on grading/report pages.
-     *
-     * @param object $course - full Course object
-     * @param object $cm - full cm object
-     */
-    public function update_status($course, $cm)
-    {
-        //called at top of submissions/grading pages - allows printing of admin style links or updating status
-    }
-
-    /**
-     * called by admin/cron.php 
-     *
-     */
-    public function cron()
-    {
-        //do any scheduled task stuff
-    }
 }
 
-function is_plugin_configured($modulename)
+function plagiarism_origai_is_plugin_configured($modulename)
 {
-    $apikey = get_config('plagiarism_originalityai', 'apikey');
-    $apiurl = get_config('plagiarism_originalityai', 'apiurl');
+    $apikey = get_config('plagiarism_origai', 'apikey');
+    $apiurl = get_config('plagiarism_origai', 'apiurl');
 
 
     if (empty($apikey) || empty($apiurl)) {
         return false;
     }
 
-    $moduleconfigname = 'plagiarism_originalityai_' . $modulename;
-    $moduleenabled = get_config('plagiarism_originalityai', $moduleconfigname);
+    $moduleconfigname = 'plagiarism_origai_' . $modulename;
+    $moduleenabled = get_config('plagiarism_origai', $moduleconfigname);
     if (!$moduleenabled) {
         return false;
     }
@@ -277,7 +240,7 @@ function is_plugin_configured($modulename)
 }
 
 
-function plagiarism_originalityai_coursemodule_standard_elements($formwrapper, $mform)
+function plagiarism_origai_coursemodule_standard_elements($formwrapper, $mform)
 {
     global $DB;
     $context = context_course::instance($formwrapper->get_course()->id);
@@ -285,44 +248,44 @@ function plagiarism_originalityai_coursemodule_standard_elements($formwrapper, $
     if (!$context || !isset($modulename)) {
         return;
     }
-    if (has_capability('plagiarism/originalityai:enable', $context)) {
+    if (has_capability('plagiarism/origai:enable', $context)) {
 
         // Return no form if the plugin isn't configured or not enabled.
-        if (!is_plugin_configured("mod_".$modulename)) {
+        if (!plagiarism_origai_is_plugin_configured("mod_".$modulename)) {
             return;
         }
 
         $mform->addElement(
             'header',
-            'plagiarism_originalityai_defaultsettings',
-            get_string('origaicoursesettings', 'plagiarism_originalityai')
+            'plagiarism_origai_defaultsettings',
+            get_string('origaicoursesettings', 'plagiarism_origai')
         );
 
         $mform->addElement(
             'advcheckbox',
-            'plagiarism_originalityai_enable',
-            get_string('originalityaienable', 'plagiarism_originalityai')
+            'plagiarism_origai_enable',
+            get_string('origaienable', 'plagiarism_origai')
         );
 
         $cmid = optional_param('update', null, PARAM_INT);
         $savedvalues = $DB->get_records_menu('plagiarism_origai_config', array('cm' => $cmid), '', 'name,value');
         if (count($savedvalues) > 0) {
             $mform->setDefault(
-                'plagiarism_originalityai_enable',
-                isset($savedvalues['plagiarism_originalityai_enable']) ? $savedvalues['plagiarism_originalityai_enable'] : 0
+                'plagiarism_origai_enable',
+                isset($savedvalues['plagiarism_origai_enable']) ? $savedvalues['plagiarism_origai_enable'] : 0
             );
         } else {
-            $mform->setDefault('plagiarism_originalityai_enable', false);
+            $mform->setDefault('plagiarism_origai_enable', false);
         }
     }
 }
 
-function plagiarism_originalityai_coursemodule_edit_post_actions($data, $course)
+function plagiarism_origai_coursemodule_edit_post_actions($data, $course)
 {
     global $DB;
 
         // Return no form if the plugin isn't configured or not enabled.
-        if (empty($data->modulename) && is_plugin_configured('mod_' . $data->modulename)) {
+        if (empty($data->modulename) && plagiarism_origai_is_plugin_configured('mod_' . $data->modulename)) {
             return;
         }
 
@@ -330,13 +293,13 @@ function plagiarism_originalityai_coursemodule_edit_post_actions($data, $course)
         if (!$savedrecord) {
             $mod_config = new stdClass();
             $mod_config->cm = $data->coursemodule;
-            $mod_config->name = 'plagiarism_originalityai_enable';
-            $mod_config->value = 0;
+            $mod_config->name = 'plagiarism_origai_enable';
+            $mod_config->value = $data->plagiarism_origai_enable;
             //insert a record
             $DB->insert_record('plagiarism_origai_config', $mod_config);
         } else {
             //update existing record
-            $savedrecord->value = $data->plagiarism_originalityai_enable;
+            $savedrecord->value = $data->plagiarism_origai_enable;
             $DB->update_record('plagiarism_origai_config', $savedrecord);
         }
         return $data;

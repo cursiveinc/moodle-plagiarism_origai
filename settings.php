@@ -17,11 +17,11 @@
     require_once(dirname(dirname(__FILE__)) . '/../config.php');
     require_once($CFG->libdir.'/adminlib.php');
     require_once($CFG->libdir.'/plagiarismlib.php');
-    require_once($CFG->dirroot.'/plagiarism/originalityai/lib.php');
-    require_once($CFG->dirroot.'/plagiarism/originalityai/plagiarism_form.php');
+    require_once($CFG->dirroot.'/plagiarism/origai/lib.php');
+    require_once($CFG->dirroot.'/plagiarism/origai/plagiarism_form.php');
 
     require_login();
-    admin_externalpage_setup('plagiarismoriginalityai');
+    admin_externalpage_setup('plagiarismorigai');
 
     $context = context_system::instance();
 
@@ -29,7 +29,7 @@
 
     require_once('plagiarism_form.php');
     $mform = new plagiarism_setup_form();
-    $plagiarismplugin = new plagiarism_plugin_originalityai();
+    $plagiarismplugin = new plagiarism_plugin_origai();
 
     if ($mform->is_cancelled()) {
         redirect(new moodle_url('/admin/category.php?category=plagiarism'));
@@ -39,7 +39,7 @@
 
     if (($data = $mform->get_data()) && confirm_sesskey()) {
         $mform->save($data);
-        echo $OUTPUT->notification(get_string('adminconfigsavesuccess', 'plagiarism_originalityai'), 'notifysuccess');
+        echo $OUTPUT->notification(get_string('adminconfigsavesuccess', 'plagiarism_origai'), 'notifysuccess');
     }
     
     $mform->init_form_data();
