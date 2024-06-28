@@ -34,7 +34,7 @@ $string['matchpercentage'] = 'Match Percentage: ';
 $string['disabledformodule'] = 'OriginalityAI plugin is disabled for this module';
 $string['apiurlrequired'] = 'Base URL of OriginalityAI API is required';
 $string['apikeyrequired'] = 'Key of OriginalityAI API is required';
-$string['apikeyhelp'] = 'If you do not have a API key, please <a target="_blank" href="https://originality.ai?lmref=IJh0Aw">click here to sign up for your own.</a>';
+$string['apikeyhelp'] = 'If you do not have a API key, please <a target="_blank" href="https://originality.ai/?via=origai-moodle">click here to sign up for your own.</a>';
 $string['status'] = "Status = ";
 $string['successmsg'] = "Success";
 $string['failmsg'] = "Fail";
