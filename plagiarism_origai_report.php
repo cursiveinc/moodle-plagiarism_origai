@@ -1,12 +1,14 @@
 <?php
-require(dirname(dirname(__FILE__)) . '/../config.php');
-require_once('../origai/lib.php');
+require (dirname(dirname(__FILE__)) . '/../config.php');
+require_once ('../origai/lib.php');
 
 // Get url params.
 $cmid = required_param('cmid', PARAM_INT);
 $itemid = optional_param('itemid', 0, PARAM_INT);
 $userid = required_param('userid', PARAM_INT);
 $modulename = required_param('modulename', PARAM_TEXT);
+$scantype = required_param('scantype', PARAM_TEXT);
+
 if (!$itemid) {
     $itemid = null;
 }
@@ -24,12 +26,14 @@ $PAGE->set_course($course);
 $PAGE->set_cm($cm);
 $PAGE->set_pagelayout('incourse');
 
-$PAGE->set_url('/moodle/plagiarism/origai/plagiarism_origai_report.php', array(
-    'cmid' => $cmid,
-    'itemid' => $itemid,
-    'userid' => $userid,
-    'modulename' => $modulename
-)
+$PAGE->set_url(
+    '/moodle/plagiarism/origai/plagiarism_origai_report.php',
+    array(
+        'cmid' => $cmid,
+        'itemid' => $itemid,
+        'userid' => $userid,
+        'modulename' => $modulename
+    )
 );
 
 // Setup page title and header.
@@ -53,7 +57,7 @@ if ($modulename != "quiz" && !$moduleenabled) {
 } else {
 
     $moduledata = $DB->get_record($cm->modname, array('id' => $cm->instance));
-    $scanresult = $DB->get_record('plagiarism_origai_plagscan', array('cmid' => $cmid, 'itemid' => $itemid, 'userid' => $userid));
+    $scanresult = $DB->get_record('plagiarism_origai_plagscan', array('cmid' => $cmid, 'itemid' => $itemid, 'userid' => $userid, 'scan_type' => $scantype));
     $matches = $DB->get_records('plagiarism_origai_match', array('scanid' => $scanresult->id));
 
 
@@ -69,95 +73,155 @@ if ($modulename != "quiz" && !$moduleenabled) {
     if ($scanresult->success == 0) {
         echo $scanresult->error;
     } else {
-        echo html_writer::start_tag("strong");
-        echo html_writer::start_tag("span");
-        echo get_string("fleschscore", "plagiarism_origai");
-        echo html_writer::end_tag("span");
-        echo html_writer::end_tag("strong");
+        if ($scantype == "plagiarism") {
+            echo html_writer::start_tag("strong");
+            echo html_writer::start_tag("span");
+            echo get_string("fleschscore", "plagiarism_origai");
+            echo html_writer::end_tag("span");
+            echo html_writer::end_tag("strong");
 
-        echo html_writer::start_tag("span");
-        echo $scanresult->flesch_grade_level . " |&nbsp;";
-        echo html_writer::end_tag("span");
+            echo html_writer::start_tag("span");
+            echo $scanresult->flesch_grade_level . " |&nbsp;";
+            echo html_writer::end_tag("span");
+        }
 
         echo html_writer::tag("a", get_string("fullreportlink", "plagiarism_origai"), array("href" => $scanresult->public_link, 'target' => "_blank"));
-
         echo html_writer::end_tag("div");
 
-        echo html_writer::start_tag("div");
 
-        echo html_writer::start_tag("strong");
-        echo html_writer::start_tag("span");
-        echo get_string("matchpercentage", "plagiarism_origai");
-        echo html_writer::end_tag("span");
-        echo html_writer::end_tag("strong");
-
-        echo html_writer::start_tag("span");
-        echo $scanresult->total_text_score . " |&nbsp;";
-        echo html_writer::end_tag("span");
-
-        echo html_writer::start_tag("strong");
-        echo html_writer::start_tag("span");
-        echo get_string("totalmatches", "plagiarism_origai");
-        echo html_writer::end_tag("span");
-        echo html_writer::end_tag("strong");
-
-        echo html_writer::start_tag("span");
-        echo $scanresult->sources;
-        echo html_writer::end_tag("span");
-
-        echo html_writer::end_tag("div");
-        echo html_writer::end_tag("div");
-
-        echo html_writer::tag("h3", get_string("matchinfo", "plagiarism_origai"));
-
-        foreach ($matches as $match) {
-            echo html_writer::start_tag("div", array('class' => 'mb-2'));
-
+        if ($scantype == "ai") {
             echo html_writer::start_tag("div");
 
             echo html_writer::start_tag("strong");
             echo html_writer::start_tag("span");
-            echo get_string("score", "plagiarism_origai");
+            echo get_string("classifierinfo", "plagiarism_origai");
             echo html_writer::end_tag("span");
             echo html_writer::end_tag("strong");
-
             echo html_writer::start_tag("span");
-            echo $match->score;
+            echo get_string("original", "plagiarism_origai") . " ";
+            echo round((float) $scanresult->original_score * 100) . '%';
+            echo " | ";
+            echo get_string("ai", "plagiarism_origai") . " ";
+            echo round((float) $scanresult->ai_score * 100) . '%';
             echo html_writer::end_tag("span");
 
             echo html_writer::end_tag("div");
+            echo html_writer::end_tag("div");
+        }
+        
 
+        if ($scantype == 'plagiarism') {
             echo html_writer::start_tag("div");
 
             echo html_writer::start_tag("strong");
             echo html_writer::start_tag("span");
-            echo get_string("phrase", "plagiarism_origai");
+            echo get_string("matchpercentage", "plagiarism_origai");
             echo html_writer::end_tag("span");
             echo html_writer::end_tag("strong");
 
             echo html_writer::start_tag("span");
-            echo $match->ptext;
+            echo $scanresult->total_text_score . " |&nbsp;";
             echo html_writer::end_tag("span");
-
-            echo html_writer::end_tag("div");
-
-            echo html_writer::start_tag("div");
 
             echo html_writer::start_tag("strong");
             echo html_writer::start_tag("span");
-            echo get_string("website", "plagiarism_origai");
+            echo get_string("totalmatches", "plagiarism_origai");
             echo html_writer::end_tag("span");
             echo html_writer::end_tag("strong");
 
             echo html_writer::start_tag("span");
-            echo html_writer::tag("a", $match->website, array("href" => $match->website, "target" => "_blank"));
+            echo $scanresult->sources;
             echo html_writer::end_tag("span");
 
             echo html_writer::end_tag("div");
-
             echo html_writer::end_tag("div");
         }
 
+        echo html_writer::tag("h3", get_string("matchinfo", "plagiarism_origai"));
+
+        if ($scantype == "plagiarism") {
+            foreach ($matches as $match) {
+                echo html_writer::start_tag("div", array('class' => 'mb-2'));
+
+                echo html_writer::start_tag("div");
+
+                echo html_writer::start_tag("strong");
+                echo html_writer::start_tag("span");
+                echo get_string("score", "plagiarism_origai");
+                echo html_writer::end_tag("span");
+                echo html_writer::end_tag("strong");
+
+                echo html_writer::start_tag("span");
+                echo $match->score;
+                echo html_writer::end_tag("span");
+
+                echo html_writer::end_tag("div");
+
+                echo html_writer::start_tag("div");
+
+                echo html_writer::start_tag("strong");
+                echo html_writer::start_tag("span");
+                echo get_string("phrase", "plagiarism_origai");
+                echo html_writer::end_tag("span");
+                echo html_writer::end_tag("strong");
+
+                echo html_writer::start_tag("span");
+                echo $match->ptext;
+                echo html_writer::end_tag("span");
+
+                echo html_writer::end_tag("div");
+
+                echo html_writer::start_tag("div");
+
+                echo html_writer::start_tag("strong");
+                echo html_writer::start_tag("span");
+                echo get_string("website", "plagiarism_origai");
+                echo html_writer::end_tag("span");
+                echo html_writer::end_tag("strong");
+
+                echo html_writer::start_tag("span");
+                echo html_writer::tag("a", $match->website, array("href" => $match->website, "target" => "_blank"));
+                echo html_writer::end_tag("span");
+
+                echo html_writer::end_tag("div");
+
+                echo html_writer::end_tag("div");
+            }
+        } else if ($scantype == "ai") {
+            foreach ($matches as $match) {
+
+                echo html_writer::start_tag("div", array('class' => 'mb-2'));
+                echo html_writer::start_tag("div");
+                echo html_writer::start_tag("strong");
+                echo html_writer::start_tag("span");
+                echo get_string("phrase", "plagiarism_origai");
+                echo html_writer::end_tag("span");
+                echo html_writer::end_tag("strong");
+                echo html_writer::start_tag("span");
+                echo $match->ptext;
+                echo html_writer::end_tag("span");
+
+                echo html_writer::end_tag("div");
+
+                echo html_writer::start_tag("div");
+
+                echo html_writer::start_tag("strong");
+                echo html_writer::start_tag("span");
+                echo get_string("ai", "plagiarism_origai") . ": ";
+                echo html_writer::end_tag("span");
+                echo html_writer::end_tag("strong");
+                echo html_writer::start_tag("span");
+                echo get_string("fake", "plagiarism_origai") . " ";
+                echo round((float) $match->fakescore * 100) . '%';
+                echo " | ";
+                echo get_string("real", "plagiarism_origai") . " ";
+                echo round((float) $match->realscore * 100) . '%';
+                echo html_writer::end_tag("span");
+
+                echo html_writer::end_tag("div");
+                echo html_writer::end_tag("div");
+            }
+        }
         echo html_writer::end_tag("div");
     }
 

@@ -22,7 +22,7 @@ if (!defined('MOODLE_INTERNAL')) {
 
 //get global class
 global $CFG;
-require_once($CFG->dirroot . '/plagiarism/lib.php');
+require_once ($CFG->dirroot . '/plagiarism/lib.php');
 
 class plagiarism_plugin_origai extends plagiarism_plugin
 {
@@ -94,57 +94,249 @@ class plagiarism_plugin_origai extends plagiarism_plugin
                 }
             }
 
-            //check whether record exists in scan table
-            $response = $DB->get_record('plagiarism_origai_plagscan', array(
-                'cmid' => $cmid, 'userid' => $userid,
-                'itemid' => $itemid
-            ));
+            //check whether scan records exists in scan table
+            $responses = $DB->get_records(
+                'plagiarism_origai_plagscan',
+                array(
+                    'cmid' => $cmid,
+                    'userid' => $userid,
+                    'itemid' => $itemid
+                )
+            );
 
-            //if response exists, show the total text score along with link to the report
-            if ($response && $response->success == true) {
-                $reporturl = "$CFG->wwwroot/plagiarism/origai/plagiarism_origai_report.php" .
-                    "?cmid=$cmid&itemid=$itemid&userid=$userid&modulename=$coursemodule->modname";
+            //check whether responses array contain responses for plagiarism scan or ai scan
+            if (empty($responses)) {
+                $respObj = new stdClass();
+                $respObj->userid = $userid;
+                $respObj->cmid = $cmid;
+                $respObj->content = $content;
+                $respObj->itemid = $itemid;
+                $respObj->scan_type = 'plagiarism';
+                $DB->insert_record('plagiarism_origai_plagscan', $respObj);
+                $respObj->scan_type = 'ai';
+                $DB->insert_record('plagiarism_origai_plagscan', $respObj);
+                //show both scan icons
+                $plagiarism_scanurl = "$CFG->wwwroot/plagiarism/origai/scan_content.php" .
+                    "?cmid=$cmid&itemid=$itemid&userid=$userid&coursemodule=$coursemodule->modname&scantype=plag";
                 $output = "<div class='origai-getscan-button'>" .
                     html_writer::link(
-                        "$reporturl",
-                        get_string('matchpercentage', 'plagiarism_origai') . $response->total_text_score,
+                        "$plagiarism_scanurl",
+                        html_writer::start_tag(
+                            'i',
+                            array(
+                                'class' => 'fa-solid fa-code-compare',
+                                'title' => get_string('plagiarismscan', 'plagiarism_origai')
+                            )
+                        ) .
+                        html_writer::end_tag('i'),
                         array('class' => 'origai-getscan-button')
-                    )
-                    .
+                    ) .
+                    "</div>";
+                $ai_scanurl = "$CFG->wwwroot/plagiarism/origai/scan_content.php" .
+                    "?cmid=$cmid&itemid=$itemid&userid=$userid&coursemodule=$coursemodule->modname&scantype=ai";
+                $output .= "<div class='origai-getscan-button'>" .
+                    html_writer::link(
+                        "$ai_scanurl",
+                        html_writer::start_tag(
+                            'i',
+                            array(
+                                'class' => 'fa-solid fa-robot',
+                                'title' => get_string('aiscan', 'plagiarism_origai')
+                            )
+                        ) .
+                        html_writer::end_tag('i'),
+                        array('class' => 'origai-getscan-button')
+                    ) .
                     "</div>";
             }
 
-            //if response not exists or response is false or null, show link button to initiate plagiarism scan
-            else {
-                //user resubmitted assignment, update existing record into plagiarism_origai_plagscan table and reset the
-                //text score 
-                if ($response && $response->content != $content) {
+            if (count($responses) == 1) {
+                $response = reset($responses);
+                if ($response->content != $content) {
                     $response->success = false;
                     $response->content = $content;
                     $DB->update_record('plagiarism_origai_plagscan', $response);
-                } else if (!$response) {
+                }
+                if (!isset($response->success)) {
+                    $plagiarism_scanurl = "$CFG->wwwroot/plagiarism/origai/scan_content.php" .
+                        "?cmid=$cmid&itemid=$itemid&userid=$userid&coursemodule=$coursemodule->modname&scantype=plag";
+                    $output = "<div class='origai-getscan-button'>" .
+                        html_writer::link(
+                            "$plagiarism_scanurl",
+                            html_writer::start_tag(
+                                'i',
+                                array(
+                                    'class' => 'fa-solid fa-code-compare',
+                                    'title' => get_string('plagiarismscan', 'plagiarism_origai')
+                                )
+                            ) .
+                            html_writer::end_tag('i'),
+                            array('class' => 'origai-getscan-button')
+                        ) .
+                        "</div>";
+                    $ai_scanurl = "$CFG->wwwroot/plagiarism/origai/scan_content.php" .
+                        "?cmid=$cmid&itemid=$itemid&userid=$userid&coursemodule=$coursemodule->modname&scantype=ai";
+                    $output .= "<div class='origai-getscan-button'>" .
+                        html_writer::link(
+                            "$ai_scanurl",
+                            html_writer::start_tag(
+                                'i',
+                                array(
+                                    'class' => 'fa-solid fa-robot',
+                                    'title' => get_string('aiscan', 'plagiarism_origai')
+                                )
+                            ) .
+                            html_writer::end_tag('i'),
+                            array('class' => 'origai-getscan-button')
+                        ) .
+                        "</div>";
                     $respObj = new stdClass();
                     $respObj->userid = $userid;
                     $respObj->cmid = $cmid;
                     $respObj->content = $content;
                     $respObj->itemid = $itemid;
+                    if ($response->scan_type == "plagiarism") {
+                        $respObj->scan_type = 'ai';
+                        $DB->insert_record('plagiarism_origai_plagscan', $respObj);
+                    } else if ($response->scan_type == "ai") {
+                        $respObj->scan_type = 'plagiarism';
+                        $DB->insert_record('plagiarism_origai_plagscan', $respObj);
+                    }
+                }
+                if (isset($response->success) && $response->scan_type == "plagiarism") {
+                    //if response exists, show the total text score along with link to the report
+                    if ($response && $response->success == true) {
+                        $reporturl = "$CFG->wwwroot/plagiarism/origai/plagiarism_origai_report.php" .
+                            "?cmid=$cmid&itemid=$itemid&userid=$userid&modulename=$coursemodule->modname&scantype=plagiarism";
+                        $output .= "<div class='origai-getscan-button'>" .
+                            html_writer::link(
+                                "$reporturl",
+                                get_string('matchpercentage', 'plagiarism_origai') . $response->total_text_score,
+                                array('class' => 'origai-getscan-button')
+                            ) .
+                            "</div>";
+                    }
+                    $ai_scanurl = "$CFG->wwwroot/plagiarism/origai/scan_content.php" .
+                        "?cmid=$cmid&itemid=$itemid&userid=$userid&coursemodule=$coursemodule->modname&scantype=ai";
+                    $output .= "<div class='origai-getscan-button'>" .
+                        html_writer::link(
+                            "$ai_scanurl",
+                            html_writer::start_tag(
+                                'i',
+                                array(
+                                    'class' => 'fa-solid fa-robot',
+                                    'title' => get_string('aiscan', 'plagiarism_origai')
+                                )
+                            ) .
+                            html_writer::end_tag('i'),
+                            array('class' => 'origai-getscan-button')
+                        ) .
+                        "</div>";
+
+                    $respObj = new stdClass();
+                    $respObj->userid = $userid;
+                    $respObj->cmid = $cmid;
+                    $respObj->content = $content;
+                    $respObj->itemid = $itemid;
+                    $respObj->scan_type = 'ai';
                     $DB->insert_record('plagiarism_origai_plagscan', $respObj);
+
+                } else if (isset($response->success) && $response->scan_type == "ai") {
+                    $plagiarism_scanurl = "$CFG->wwwroot/plagiarism/origai/scan_content.php" .
+                        "?cmid=$cmid&itemid=$itemid&userid=$userid&coursemodule=$coursemodule->modname&scantype=plag";
+                    $output = "<div class='origai-getscan-button'>" .
+                        html_writer::link(
+                            "$plagiarism_scanurl",
+                            html_writer::start_tag(
+                                'i',
+                                array(
+                                    'class' => 'fa-solid fa-code-compare',
+                                    'title' => get_string('plagiarismscan', 'plagiarism_origai')
+                                )
+                            ) .
+                            html_writer::end_tag('i'),
+                            array('class' => 'origai-getscan-button')
+                        ) .
+                        "</div>";
+                    if ($response && $response->success == true) {
+                        $reporturl = "$CFG->wwwroot/plagiarism/origai/plagiarism_origai_report.php" .
+                            "?cmid=$cmid&itemid=$itemid&userid=$userid&modulename=$coursemodule->modname&scantype=ai";
+                        $output .= "<div class='origai-getscan-button'>" .
+                            html_writer::link(
+                                "$reporturl",
+                                get_string('aipercentage', 'plagiarism_origai') . round((float) $response->ai_score * 100) . '%',
+                                array('class' => 'origai-getscan-button')
+                            ) .
+                            "</div>";
+                    }
+                    $respObj = new stdClass();
+                    $respObj->userid = $userid;
+                    $respObj->cmid = $cmid;
+                    $respObj->content = $content;
+                    $respObj->itemid = $itemid;
+                    $respObj->scan_type = 'plagiarism';
+                    $DB->insert_record('plagiarism_origai_plagscan', $respObj);
+
                 }
 
-                $getscanurl = "$CFG->wwwroot/plagiarism/origai/scan_content.php" .
-                    "?cmid=$cmid&itemid=$itemid&userid=$userid&coursemodule=$coursemodule->modname";
-                $output = "<div class='origai-getscan-button'>" .
-                    html_writer::link(
-                        "$getscanurl",
-                        get_string('plagiarismscan', 'plagiarism_origai'),
-                        array('class' => 'origai-getscan-button')
-                    )
-                    .
-                    "</div>";
+            }
+
+            //generate links for both scan types.
+            if (count($responses) == 2) {
+                $output = "";
+                foreach ($responses as $response) {
+                    if ($response->content != $content) {
+                        $response->success = false;
+                        $response->content = $content;
+                        $DB->update_record('plagiarism_origai_plagscan', $response);
+                    }
+                    if (!isset($response->success)) {
+                        $plagiarism_scanurl = "$CFG->wwwroot/plagiarism/origai/scan_content.php" .
+                            "?cmid=$cmid&itemid=$itemid&userid=$userid&coursemodule=$coursemodule->modname&scantype=$response->scan_type";
+                        $output .= "<div class='origai-getscan-button'>" .
+                            html_writer::link(
+                                "$plagiarism_scanurl",
+                                html_writer::start_tag(
+                                    'i',
+                                    array(
+                                        'class' => $response->scan_type == "plagiarism" ? 'fa-solid fa-code-compare' : 'fa-solid fa-robot',
+                                        'title' => get_string('plagiarismscan', 'plagiarism_origai')
+                                    )
+                                ) .
+                                html_writer::end_tag('i'),
+                                array('class' => 'origai-getscan-button')
+                            ) .
+                            "</div>";
+                    }
+                    if (isset($response->success) && $response->scan_type == "plagiarism") {
+                        //if response exists, show the total text score along with link to the report
+                        if ($response && $response->success == true) {
+                            $reporturl = "$CFG->wwwroot/plagiarism/origai/plagiarism_origai_report.php" .
+                                "?cmid=$cmid&itemid=$itemid&userid=$userid&modulename=$coursemodule->modname&scantype=plagiarism";
+                            $output .= "<div class='origai-getscan-button'>" .
+                                html_writer::link(
+                                    "$reporturl",
+                                    get_string('matchpercentage', 'plagiarism_origai') . $response->total_text_score,
+                                    array('class' => 'origai-getscan-button')
+                                ) .
+                                "</div>";
+                        }
+                    } else if (isset($response->success) && $response->scan_type == "ai") {
+                        if ($response && $response->success == true) {
+                            $reporturl = "$CFG->wwwroot/plagiarism/origai/plagiarism_origai_report.php" .
+                                "?cmid=$cmid&itemid=$itemid&userid=$userid&modulename=$coursemodule->modname&scantype=ai";
+                            $output .= "<div class='origai-getscan-button'>" .
+                                html_writer::link(
+                                    "$reporturl",
+                                    get_string('aipercentage', 'plagiarism_origai') . round((float) $response->ai_score * 100) . '%',
+                                    array('class' => 'origai-getscan-button')
+                                ) .
+                                "</div>";
+                        }
+                    }
+                }
             }
         }
-
-
         return $output;
     }
 }
@@ -180,7 +372,7 @@ function plagiarism_origai_coursemodule_standard_elements($formwrapper, $mform)
     if (has_capability('plagiarism/origai:enable', $context)) {
 
         // Return no form if the plugin isn't configured or not enabled.
-        if (!plagiarism_origai_is_plugin_configured("mod_".$modulename)) {
+        if (!plagiarism_origai_is_plugin_configured("mod_" . $modulename)) {
             return;
         }
 
@@ -213,23 +405,27 @@ function plagiarism_origai_coursemodule_edit_post_actions($data, $course)
 {
     global $DB;
 
-        // Return no form if the plugin isn't configured or not enabled.
-        if (empty($data->modulename) && plagiarism_origai_is_plugin_configured('mod_' . $data->modulename)) {
-            return;
-        }
+    if(empty ($data->modulename)){
+        return;
+    }
 
-        $savedrecord = $DB->get_record('plagiarism_origai_config', array('cm' => $data->coursemodule));
-        if (!$savedrecord) {
-            $mod_config = new stdClass();
-            $mod_config->cm = $data->coursemodule;
-            $mod_config->name = 'plagiarism_origai_enable';
-            $mod_config->value = $data->plagiarism_origai_enable;
-            //insert a record
-            $DB->insert_record('plagiarism_origai_config', $mod_config);
-        } else {
-            //update existing record
-            $savedrecord->value = $data->plagiarism_origai_enable;
-            $DB->update_record('plagiarism_origai_config', $savedrecord);
-        }
-        return $data;
+    // Check if plagiarism plugin is enabled for this module
+    if (!plagiarism_origai_is_plugin_configured('mod_' . $data->modulename)) {
+        return;
+    }
+
+    $savedrecord = $DB->get_record('plagiarism_origai_config', array('cm' => $data->coursemodule));
+    if (!$savedrecord) {
+        $mod_config = new stdClass();
+        $mod_config->cm = $data->coursemodule;
+        $mod_config->name = 'plagiarism_origai_enable';
+        $mod_config->value = $data->plagiarism_origai_enable;
+        //insert a record
+        $DB->insert_record('plagiarism_origai_config', $mod_config);
+    } else {
+        //update existing record
+        $savedrecord->value = $data->plagiarism_origai_enable;
+        $DB->update_record('plagiarism_origai_config', $savedrecord);
+    }
+    return $data;
 }
