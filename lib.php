@@ -406,12 +406,12 @@ function plagiarism_origai_coursemodule_edit_post_actions($data, $course)
     global $DB;
 
     if(empty ($data->modulename)){
-        return;
+        return $data;
     }
 
     // Check if plagiarism plugin is enabled for this module
     if (!plagiarism_origai_is_plugin_configured('mod_' . $data->modulename)) {
-        return;
+        return $data;
     }
 
     $savedrecord = $DB->get_record('plagiarism_origai_config', array('cm' => $data->coursemodule));
