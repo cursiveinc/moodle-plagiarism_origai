@@ -34,6 +34,20 @@ class plagiarism_setup_form extends moodleform
         $mform->setType('apikey', PARAM_TEXT);
         $mform->addRule('apikey', get_string('apikeyrequired', 'plagiarism_origai'), 'required');
 
+        $mform->addElement('select', 
+            'aiModel', // Name of the form field.
+            get_string('aiModel', 'plagiarism_origai'), // Field label.
+            array(
+                'standard' => get_string('standard', 'plagiarism_origai'),
+                'lite' => get_string('lite', 'plagiarism_origai'),
+                'turbo' => get_string('turbo', 'plagiarism_origai'),
+                'multilang' => get_string('multilang', 'plagiarism_origai'),
+            )
+        );
+
+        // Set default value for the dropdown.
+        $mform->setDefault('aiModel', 'lite');
+
         $mform->addElement('html', '<div class="form-group row fitem"><div class="col-md-12 col-form-label">'.get_string("apikeyhelp","plagiarism_origai"));
 
         $this->add_action_buttons(true);
@@ -49,6 +63,7 @@ class plagiarism_setup_form extends moodleform
     {
         set_config('apiurl', $data->apiurl, 'plagiarism_origai');
         set_config('apikey', $data->apikey, 'plagiarism_origai');
+        set_config('aiModel', $data->aiModel, 'plagiarism_origai');
 
         set_config('plagiarism_origai_mod_assign', $data->plagiarism_origai_mod_assign, 'plagiarism_origai');
         set_config('plagiarism_origai_mod_forum', $data->plagiarism_origai_mod_forum, 'plagiarism_origai');

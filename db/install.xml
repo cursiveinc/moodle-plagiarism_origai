@@ -1,53 +1,56 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<XMLDB xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" PATH="plagiarism/origai/db" VERSION="20240524" COMMENT="XMLDB file for Moodle plagiarism/origai" xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd">
-<TABLES>
-<TABLE NAME="plagiarism_origai_config" COMMENT="stores plugin configuration data">
-<FIELDS>
-<FIELD NAME="id" TYPE="int" LENGTH="19" NOTNULL="true" SEQUENCE="true"/>
-<FIELD NAME="cm" TYPE="int" LENGTH="19" NOTNULL="false" SEQUENCE="false"/>
-<FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
-<FIELD NAME="value" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
-</FIELDS>
-<KEYS>
-<KEY NAME="pk" TYPE="primary" FIELDS="id"/>
-</KEYS>
-</TABLE>
-<TABLE NAME="plagiarism_origai_plagscan" COMMENT="stores plagiarism scan result from origai">
-<FIELDS>
-<FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
-<FIELD NAME="scan_type" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-<FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-<FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-<FIELD NAME="itemid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-<FIELD NAME="success" TYPE="char" LENGTH="45" NOTNULL="false" SEQUENCE="false"/>
-<FIELD NAME="public_link" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
-<FIELD NAME="title" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
-<FIELD NAME="total_text_score" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-<FIELD NAME="flesch_grade_level" TYPE="number" LENGTH="4" NOTNULL="false" SEQUENCE="false" DECIMALS="2"/>
-<FIELD NAME="original_score" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-<FIELD NAME="ai_score" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-<FIELD NAME="sources" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-<FIELD NAME="content" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
-<FIELD NAME="error" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
-<FIELD NAME="update_time" TYPE="datetime" NOTNULL="false" SEQUENCE="false"/>
-</FIELDS>
-<KEYS>
-<KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-</KEYS>
-</TABLE>
-<TABLE NAME="plagiarism_origai_match" COMMENT="stores match results from various sources">
-<FIELDS>
-<FIELD NAME="id" TYPE="int" LENGTH="19" NOTNULL="true" SEQUENCE="true"/>
-<FIELD NAME="scanid" TYPE="int" LENGTH="19" NOTNULL="true" SEQUENCE="false"/>
-<FIELD NAME="website" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
-<FIELD NAME="score" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
-<FIELD NAME="fakescore" TYPE="number" LENGTH="12" NOTNULL="false" SEQUENCE="false" DECIMALS="11"/>
-<FIELD NAME="realscore" TYPE="number" LENGTH="12" NOTNULL="false" SEQUENCE="false" DECIMALS="11"/>
-<FIELD NAME="ptext" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
-</FIELDS>
-<KEYS>
-<KEY NAME="primary" TYPE="primary" FIELDS="id"/>
-</KEYS>
-</TABLE>
-</TABLES>
+<XMLDB PATH="plagiarism/origai/db" VERSION="20241201" COMMENT="XMLDB file for Moodle plagiarism/origai"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="plagiarism_origai_config" COMMENT="stores plugin configuration data">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="19" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="cm" TYPE="int" LENGTH="19" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="name" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="value" TYPE="char" LENGTH="255" NOTNULL="true" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="pk" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="plagiarism_origai_plagscan" COMMENT="stores plagiarism scan result from origai">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="scan_type" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="cmid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="userid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="itemid" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="success" TYPE="char" LENGTH="45" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="public_link" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="title" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="total_text_score" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="flesch_grade_level" TYPE="number" LENGTH="4" NOTNULL="false" SEQUENCE="false" DECIMALS="2"/>
+        <FIELD NAME="original_score" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="ai_score" TYPE="char" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="sources" TYPE="int" LENGTH="10" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="content" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="error" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="update_time" TYPE="datetime" NOTNULL="false" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+    <TABLE NAME="plagiarism_origai_match" COMMENT="stores match results from various sources">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="19" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="scanid" TYPE="int" LENGTH="19" NOTNULL="true" SEQUENCE="false"/>
+        <FIELD NAME="website" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="score" TYPE="number" LENGTH="10" NOTNULL="false" SEQUENCE="false" DECIMALS="4"/>
+        <FIELD NAME="fakescore" TYPE="number" LENGTH="12" NOTNULL="false" SEQUENCE="false" DECIMALS="11"/>
+        <FIELD NAME="realscore" TYPE="number" LENGTH="12" NOTNULL="false" SEQUENCE="false" DECIMALS="11"/>
+        <FIELD NAME="ptext" TYPE="text" NOTNULL="false" SEQUENCE="false"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+    </TABLE>
+  </TABLES>
 </XMLDB>

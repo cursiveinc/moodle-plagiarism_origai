@@ -22,8 +22,8 @@ $context = context_course::instance($coursemodule->course);
 require_capability('mod/assign:grade', $context);
 
 $apikey = get_config('plagiarism_origai', 'apikey');
-$apibaseurl = get_config('plagiarism_origai', 'apiurl');
-$apiurl = $apibaseurl . ($scantype == "plagiarism" ? '/scan/plag' : '/scan/ai');
+$apiurl = get_config('plagiarism_origai', 'apiurl');
+$aimodel = get_config('plagiarism_origai', 'aiModel');
 
 if (empty($apikey) || empty($apiurl)) {
     //redirect to grade/submission page with message that plugin is not configured.
@@ -40,38 +40,43 @@ if (isset($recordObj->content)) {
     $request_string = json_encode(
         array(
             'content' => html_to_text($recordObj->content, 0),
-            'storeScan' => "\"false\""
+            'storeScan' => false,
+            'aiModel' => $aimodel,
+            'scan_ai' => ($scantype == 'ai')? true: false,
+            'scan_plag' => ($scantype == 'plagiarism')? true: false,
+            'scan_readability' => true,
+            'scan_grammar_spelling' => true
         )
     );
-    $response = $c->post($apiurl, $request_string);
+    $response = $c->post($apiurl, params: $request_string);
     $responseObj = json_decode($response);
     $info = $c->get_info();
     $httpcode = $info['http_code'];
 
     if ($httpcode == 200) {
-        $recordObj->success = $responseObj->success;
-        $recordObj->public_link = $responseObj->public_link;
-        if ($scantype == "plagiarism") {
-            $recordObj->total_text_score = $responseObj->total_text_score;
-            $recordObj->sources = $responseObj->sources;
+        $recordObj->success = true;
+        $recordObj->public_link = $responseObj->properties->public_link;
+        if ($scantype == "plagiarism" && $responseObj->plagiarism!==null) {
+            $recordObj->total_text_score = $responseObj->plagiarism->score;
+            $recordObj->sources = count($responseObj->plagiarism->results);
             $recordObj->flesch_grade_level = $responseObj->readability->readability->fleschGradeLevel;
         } else if ($scantype == "ai") {
-            $recordObj->original_score = $responseObj->score->original;
-            $recordObj->ai_score = $responseObj->score->ai;
+            $recordObj->original_score = $responseObj->ai->confidence->Original;
+            $recordObj->ai_score = $responseObj->ai->confidence->AI;
         }
         $recordObj->update_time = date('Y-m-d H:i:s');
         $DB->update_record('plagiarism_origai_plagscan', $recordObj);
         if ($scantype == "plagiarism") {
-            if (count($responseObj->results) > 0) {
-                foreach ($responseObj->results as $result) {
-                    if (count($result->matches) > 0) {
+            if (count($responseObj->plagiarism->results) > 0) {
+                foreach ($responseObj->plagiarism->results as $result) {
+                    if (count($result->results) > 0) {
                         $matches = array();
-                        foreach ($result->matches as $match) {
+                        foreach ($result->results as $match) {
                             $matchObj = new stdClass();
                             $matchObj->scanid = $recordObj->id;
-                            $matchObj->website = $match->website;
-                            $matchObj->score = $match->score;
-                            $matchObj->ptext = $match->pText;
+                            $matchObj->website = $match->link;
+                            $matchObj->score = $match->scores[0]->score;
+                            $matchObj->ptext = $match->scores[0]->sentence;
                             array_push($matches, $matchObj);
                         }
                         $DB->insert_records('plagiarism_origai_match', $matches);
@@ -79,9 +84,9 @@ if (isset($recordObj->content)) {
                 }
             }
         } else if ($scantype == "ai") {
-            if (count($responseObj->blocks) > 0) {
+            if (count($responseObj->ai->blocks) > 0) {
                 $blocks = array();
-                foreach ($responseObj->blocks as $block) {
+                foreach ($responseObj->ai->blocks as $block) {
                     $blockObj = new stdClass();
                     $blockObj->scanid = $recordObj->id;
                     $blockObj->fakescore = $block->result->fake;
