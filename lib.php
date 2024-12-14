@@ -117,7 +117,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin
                 $DB->insert_record('plagiarism_origai_plagscan', $respObj);
                 //show both scan icons
                 $plagiarism_scanurl = "$CFG->wwwroot/plagiarism/origai/scan_content.php" .
-                    "?cmid=$cmid&itemid=$itemid&userid=$userid&coursemodule=$coursemodule->modname&scantype=plag";
+                    "?cmid=$cmid&itemid=$itemid&userid=$userid&coursemodule=$coursemodule->modname&scantype=plagiarism";
                 $output = "<div class='origai-getscan-button'>" .
                     html_writer::link(
                         "$plagiarism_scanurl",
@@ -159,7 +159,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin
                 }
                 if (!isset($response->success)) {
                     $plagiarism_scanurl = "$CFG->wwwroot/plagiarism/origai/scan_content.php" .
-                        "?cmid=$cmid&itemid=$itemid&userid=$userid&coursemodule=$coursemodule->modname&scantype=plag";
+                        "?cmid=$cmid&itemid=$itemid&userid=$userid&coursemodule=$coursemodule->modname&scantype=plagiarism";
                     $output = "<div class='origai-getscan-button'>" .
                         html_writer::link(
                             "$plagiarism_scanurl",
@@ -243,7 +243,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin
 
                 } else if (isset($response->success) && $response->scan_type == "ai") {
                     $plagiarism_scanurl = "$CFG->wwwroot/plagiarism/origai/scan_content.php" .
-                        "?cmid=$cmid&itemid=$itemid&userid=$userid&coursemodule=$coursemodule->modname&scantype=plag";
+                        "?cmid=$cmid&itemid=$itemid&userid=$userid&coursemodule=$coursemodule->modname&scantype=ai";
                     $output = "<div class='origai-getscan-button'>" .
                         html_writer::link(
                             "$plagiarism_scanurl",
@@ -292,7 +292,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin
                     }
                     if (!isset($response->success)) {
                         $plagiarism_scanurl = "$CFG->wwwroot/plagiarism/origai/scan_content.php" .
-                            "?cmid=$cmid&itemid=$itemid&userid=$userid&coursemodule=$coursemodule->modname&scantype=$response->scan_type";
+                            "?cmid=$cmid&itemid=$itemid&userid=$userid&coursemodule=$coursemodule->modname&scantype=".$response->scan_type;
                         $output .= "<div class='origai-getscan-button'>" .
                             html_writer::link(
                                 "$plagiarism_scanurl",
@@ -300,7 +300,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin
                                     'i',
                                     array(
                                         'class' => $response->scan_type == "plagiarism" ? 'fa-solid fa-code-compare' : 'fa-solid fa-robot',
-                                        'title' => get_string('plagiarismscan', 'plagiarism_origai')
+                                        'title' => get_string('aiscan', 'plagiarism_origai')
                                     )
                                 ) .
                                 html_writer::end_tag('i'),

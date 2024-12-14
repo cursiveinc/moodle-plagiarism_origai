@@ -22,7 +22,7 @@ $context = context_course::instance($coursemodule->course);
 require_capability('mod/assign:grade', $context);
 
 $apikey = get_config('plagiarism_origai', 'apikey');
-$apiurl = get_config('plagiarism_origai', 'apiurl');
+$apiurl = get_config('plagiarism_origai', 'apiurl').'/scan';
 $aimodel = get_config('plagiarism_origai', 'aiModel');
 
 if (empty($apikey) || empty($apiurl)) {
@@ -67,25 +67,26 @@ if (isset($recordObj->content)) {
         $recordObj->update_time = date('Y-m-d H:i:s');
         $DB->update_record('plagiarism_origai_plagscan', $recordObj);
         if ($scantype == "plagiarism") {
-            if (count($responseObj->plagiarism->results) > 0) {
+            if (isset($responseObj->plagiarism->results) && is_array($responseObj->plagiarism->results)) {
                 foreach ($responseObj->plagiarism->results as $result) {
-                    if (count($result->results) > 0) {
-                        $matches = array();
-                        foreach ($result->results as $match) {
-                            $matchObj = new stdClass();
-                            $matchObj->scanid = $recordObj->id;
-                            $matchObj->website = $match->link;
-                            $matchObj->score = $match->scores[0]->score;
-                            $matchObj->ptext = $match->scores[0]->sentence;
-                            array_push($matches, $matchObj);
-                        }
+                    $resultArray = isset($result->results) && is_array($result->results) ? $result->results : [];
+                    $matches = [];
+                    foreach ($resultArray as $match) {
+                        $matchObj = new stdClass();
+                        $matchObj->scanid = $recordObj->id;
+                        $matchObj->website = $match->link;
+                        $matchObj->score = $match->scores[0]->score;
+                        $matchObj->ptext = $match->scores[0]->sentence;
+                        array_push($matches, $matchObj);
+                    }
+                    if(!empty($matches)){
                         $DB->insert_records('plagiarism_origai_match', $matches);
                     }
                 }
             }
         } else if ($scantype == "ai") {
-            if (count($responseObj->ai->blocks) > 0) {
-                $blocks = array();
+            if (isset($responseObj->ai->blocks) && is_array($responseObj->ai->blocks)) {
+                $blocks = [];
                 foreach ($responseObj->ai->blocks as $block) {
                     $blockObj = new stdClass();
                     $blockObj->scanid = $recordObj->id;
@@ -94,7 +95,9 @@ if (isset($recordObj->content)) {
                     $blockObj->ptext = $block->text;
                     array_push($blocks, $blockObj);
                 }
-                $DB->insert_records('plagiarism_origai_match', $blocks);
+                if(!empty($blocks)){
+                    $DB->insert_records('plagiarism_origai_match', $blocks);
+                }
             }
         }
     } else if ($httpcode == 422 || $httpcode == 500) {
