@@ -3,6 +3,7 @@ require (dirname(dirname(__FILE__)) . '/../config.php');
 require_once ('../origai/lib.php');
 
 // Get url params.
+$scanid = required_param('scanid', PARAM_INT);
 $cmid = required_param('cmid', PARAM_INT);
 $itemid = optional_param('itemid', 0, PARAM_INT);
 $userid = required_param('userid', PARAM_INT);
@@ -29,6 +30,7 @@ $PAGE->set_pagelayout('incourse');
 $PAGE->set_url(
     '/moodle/plagiarism/origai/plagiarism_origai_report.php',
     array(
+        'scanid' => $scanid,
         'cmid' => $cmid,
         'itemid' => $itemid,
         'userid' => $userid,
@@ -57,7 +59,7 @@ if ($modulename != "quiz" && !$moduleenabled) {
 } else {
 
     $moduledata = $DB->get_record($cm->modname, array('id' => $cm->instance));
-    $scanresult = $DB->get_record('plagiarism_origai_plagscan', array('cmid' => $cmid, 'itemid' => $itemid, 'userid' => $userid, 'scan_type' => $scantype));
+    $scanresult = $DB->get_record('plagiarism_origai_plagscan', array('id'=>$scanid, 'cmid' => $cmid, 'itemid' => $itemid, 'userid' => $userid, 'scan_type' => $scantype));
     $matches = $DB->get_records('plagiarism_origai_match', array('scanid' => $scanresult->id));
 
 
@@ -73,17 +75,6 @@ if ($modulename != "quiz" && !$moduleenabled) {
     if ($scanresult->success == 0) {
         echo $scanresult->error;
     } else {
-        if ($scantype == "plagiarism") {
-            echo html_writer::start_tag("strong");
-            echo html_writer::start_tag("span");
-            echo get_string("fleschscore", "plagiarism_origai");
-            echo html_writer::end_tag("span");
-            echo html_writer::end_tag("strong");
-
-            echo html_writer::start_tag("span");
-            echo $scanresult->flesch_grade_level . " |&nbsp;";
-            echo html_writer::end_tag("span");
-        }
 
         echo html_writer::tag("a", get_string("fullreportlink", "plagiarism_origai"), array("href" => $scanresult->public_link, 'target' => "_blank"));
         echo html_writer::end_tag("div");
@@ -120,7 +111,7 @@ if ($modulename != "quiz" && !$moduleenabled) {
             echo html_writer::end_tag("strong");
 
             echo html_writer::start_tag("span");
-            echo $scanresult->total_text_score . " |&nbsp;";
+            echo round((float)$scanresult->total_text_score)."%" . " |&nbsp;"; 
             echo html_writer::end_tag("span");
 
             echo html_writer::start_tag("strong");
@@ -130,7 +121,7 @@ if ($modulename != "quiz" && !$moduleenabled) {
             echo html_writer::end_tag("strong");
 
             echo html_writer::start_tag("span");
-            echo $scanresult->sources;
+            echo (int)$scanresult->sources;
             echo html_writer::end_tag("span");
 
             echo html_writer::end_tag("div");
@@ -152,7 +143,7 @@ if ($modulename != "quiz" && !$moduleenabled) {
                 echo html_writer::end_tag("strong");
 
                 echo html_writer::start_tag("span");
-                echo $match->score;
+                echo round((float) $match->score * 100) . '%';
                 echo html_writer::end_tag("span");
 
                 echo html_writer::end_tag("div");

@@ -3,6 +3,7 @@
 require_once ('../../config.php');
 require_once ($CFG->libdir . '/filelib.php');
 
+$scanid = required_param('scanid', PARAM_INT);
 $cmid = required_param('cmid', PARAM_INT);
 $itemid = optional_param('itemid', 0, PARAM_INT);
 $userid = required_param('userid', PARAM_INT);
@@ -35,7 +36,7 @@ $c->setHeader(['X-OAI-API-KEY: ' . $apikey]);
 $c->setHeader(['Content-Type: application/json']);
 
 // //fetch content from the database
-$recordObj = $DB->get_record('plagiarism_origai_plagscan', array('cmid' => $cmid, 'userid' => $userid, 'itemid' => $itemid, 'scan_type' => $scantype));
+$recordObj = $DB->get_record('plagiarism_origai_plagscan', array('id' => $scanid, 'cmid' => $cmid, 'userid' => $userid, 'itemid' => $itemid, 'scan_type' => $scantype));
 if (isset($recordObj->content)) {
     $request_string = json_encode(
         array(
@@ -44,8 +45,8 @@ if (isset($recordObj->content)) {
             'aiModel' => $aimodel,
             'scan_ai' => ($scantype == 'ai')? true: false,
             'scan_plag' => ($scantype == 'plagiarism')? true: false,
-            'scan_readability' => true,
-            'scan_grammar_spelling' => true
+            'scan_readability' => false,
+            'scan_grammar_spelling' => false
         )
     );
     $response = $c->post($apiurl, params: $request_string);
@@ -111,6 +112,6 @@ if (isset($recordObj->content)) {
         $DB->update_record('plagiarism_origai_plagscan', $recordObj);
     }
 
-    $url = new moodle_url('/plagiarism/origai/plagiarism_origai_report.php', array('cmid' => $cmid, 'itemid' => $itemid, 'userid' => $userid, 'modulename' => $modulename, 'scantype' => $scantype));
+    $url = new moodle_url('/plagiarism/origai/plagiarism_origai_report.php', array('scanid' => $scanid, 'cmid' => $cmid, 'itemid' => $itemid, 'userid' => $userid, 'modulename' => $modulename, 'scantype' => $scantype));
     redirect($url);
 }
