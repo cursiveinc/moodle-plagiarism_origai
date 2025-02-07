@@ -22,7 +22,7 @@ if (!defined('MOODLE_INTERNAL')) {
 
 //get global class
 global $CFG;
-require_once ($CFG->dirroot . '/plagiarism/lib.php');
+require_once($CFG->dirroot . '/plagiarism/lib.php');
 require_once(__DIR__ . '/vendor/autoload.php');
 
 class plagiarism_plugin_origai extends plagiarism_plugin
@@ -42,23 +42,30 @@ class plagiarism_plugin_origai extends plagiarism_plugin
         $userid = $linkarray['userid'];
 
         $content = "";
-        if(!empty($linkarray['content'])){
+        if (!empty($linkarray['content'])) {
             $content = $linkarray['content'];
             $content = $linkarray['content'];
-        }
-        else if(!empty($linkarray["file"])&& $linkarray["file"]->get_mimetype() === 'application/pdf'){
+        } else if (!empty($linkarray["file"]) && $linkarray["file"]->get_mimetype() === 'application/pdf') {
             //extract content from pdf file
-            $parser = new \Smalot\PdfParser\Parser();
             $tempfile = $CFG->tempdir . '/' . $linkarray["file"]->get_filename();
             $linkarray["file"]->copy_content_to($tempfile);
-            try{
-                $pdf = $parser->parseFile($tempfile);
-                $content = $pdf->getText();
+            try {
+                $content = plagiarism_origai_pdf_to_text($tempfile);
                 unlink($tempfile);
-            }
-            catch(Exception $e){
+            } catch (Exception $e) {
                 error_log('Error processing PDF file: ' . $e->getMessage());
-                $content="";
+                $content = "";
+            }
+        } else if (!empty($linkarray["file"]) && $linkarray["file"]->get_mimetype() === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'){
+            //extract content from docx file
+            $tempfile = $CFG->tempdir . '/' . $linkarray["file"]->get_filename();
+            $linkarray["file"]->copy_content_to($tempfile);
+            try {
+                $content = plagiarism_origai_docx_to_text($tempfile);
+                unlink($tempfile);
+            } catch (Exception $e) {
+                error_log('Error processing Docx file: ' . $e->getMessage());
+                $content = "";
             }
         }
 
@@ -103,7 +110,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin
             $isinstructor = has_capability('mod/assign:grade', $context);
         }
 
-        if ((!empty($linkarray["cmid"])) && (!empty($linkarray["content"])||(!empty($linkarray["file"]) && $linkarray["file"]->get_mimetype() === 'application/pdf')) && $isinstructor) {
+        if ((!empty($linkarray["cmid"])) && (!empty($linkarray["content"]) || (!empty($linkarray["file"]) && ($linkarray["file"]->get_mimetype() === 'application/pdf'|| $linkarray["file"]->get_mimetype() === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'))) && $isinstructor) {
 
             if (!plagiarism_origai_is_plugin_configured("mod_" . $coursemodule->modname)) {
                 return;
@@ -120,9 +127,9 @@ class plagiarism_plugin_origai extends plagiarism_plugin
             $sql = "SELECT * FROM {plagiarism_origai_plagscan} 
                     WHERE cmid = ? 
                     AND userid = ? 
-                    AND  " . ($itemid === null ? "itemid IS NULL" : "itemid = ?") . 
-                    " AND " . $DB->sql_compare_text('content') . " = ?";
-                    
+                    AND  " . ($itemid === null ? "itemid IS NULL" : "itemid = ?") .
+                " AND " . $DB->sql_compare_text('content') . " = ?";
+
             $params = $itemid === null ? [$cmid, $userid, $content] : [$cmid, $userid, $itemid, $content];
             $responses = $DB->get_records_sql($sql, $params);
 
@@ -183,7 +190,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin
                     }
                     if (!isset($response->success)) {
                         $scanurl = "$CFG->wwwroot/plagiarism/origai/scan_content.php" .
-                            "?scanid=$response->id&cmid=$cmid&itemid=$itemid&userid=$userid&coursemodule=$coursemodule->modname&scantype=".$response->scan_type;
+                            "?scanid=$response->id&cmid=$cmid&itemid=$itemid&userid=$userid&coursemodule=$coursemodule->modname&scantype=" . $response->scan_type;
                         $output .= "<div class='origai-getscan-button'>" .
                             html_writer::link(
                                 "$scanurl",
@@ -207,7 +214,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin
                             $output .= "<div class='origai-getscan-button'>" .
                                 html_writer::link(
                                     "$reporturl",
-                                    get_string('matchpercentage', 'plagiarism_origai') . round((float)$response->total_text_score)."%",
+                                    get_string('matchpercentage', 'plagiarism_origai') . round((float) $response->total_text_score) . "%",
                                     array('class' => 'origai-getscan-button')
                                 ) .
                                 "</div>";
@@ -296,7 +303,7 @@ function plagiarism_origai_coursemodule_edit_post_actions($data, $course)
 {
     global $DB;
 
-    if(empty ($data->modulename)){
+    if (empty($data->modulename)) {
         return $data;
     }
 
@@ -319,4 +326,37 @@ function plagiarism_origai_coursemodule_edit_post_actions($data, $course)
         $DB->update_record('plagiarism_origai_config', $savedrecord);
     }
     return $data;
+}
+
+function plagiarism_origai_pdf_to_text($filepath)
+{
+    try {
+        $parser = new Smalot\PdfParser\Parser();
+        $pdf = $parser->parseFile($filepath);
+        $text = $pdf->getText();
+        return $text;
+
+    } catch (Exception $e) {
+        error_log('Error extracting text from PDF: ' . $e->getMessage());
+        return 'Error: Unable to extract text.';
+    }
+}
+
+function plagiarism_origai_docx_to_text($filepath)
+{
+    try {
+        $phpWord = PhpOffice\PhpWord\IOFactory::load($filepath);
+        $text = '';
+        foreach ($phpWord->getSections() as $section) {
+            foreach ($section->getElements() as $element) {
+                if (method_exists($element, 'getText')) {
+                    $text .= $element->getText() . PHP_EOL;
+                }
+            }
+        }
+        return $text;
+    } catch (Exception $e) {
+        error_log('Error extracting text from PDF: ' . $e->getMessage());
+        return 'Error: Unable to extract text.';
+    }
 }

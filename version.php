@@ -18,7 +18,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'plagiarism_origai';
-$plugin->version =  2024122200;
+$plugin->version =  2025020700;
 $plugin->requires = 2020061500;
 $plugin->release   = '1.1.3';
 $plugin->maturity  = MATURITY_STABLE;
