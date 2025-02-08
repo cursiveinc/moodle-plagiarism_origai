@@ -69,7 +69,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin
             }
         }
 
-        $itemid = $linkarray['itemid'];
+        $itemid = $linkarray['itemid'] ?? null;
 
         $output = '';
         //add link/information about this file to $output
