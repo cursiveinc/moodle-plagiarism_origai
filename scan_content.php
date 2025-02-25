@@ -58,12 +58,12 @@ if (isset($recordObj->content)) {
         $recordObj->success = true;
         $recordObj->public_link = $responseObj->properties->public_link;
         if ($scantype == "plagiarism" && $responseObj->plagiarism!==null) {
-            $recordObj->total_text_score = $responseObj->plagiarism->score;
+            $recordObj->total_text_score = substr($responseObj->plagiarism->score,0,9);
             $recordObj->sources = count($responseObj->plagiarism->results);
             $recordObj->flesch_grade_level = $responseObj->readability->readability->fleschGradeLevel;
         } else if ($scantype == "ai") {
-            $recordObj->original_score = $responseObj->ai->confidence->Original;
-            $recordObj->ai_score = $responseObj->ai->confidence->AI;
+            $recordObj->original_score = substr($responseObj->ai->confidence->Original,0,9);
+            $recordObj->ai_score = substr($responseObj->ai->confidence->AI,0,9);
         }
         $recordObj->update_time = date('Y-m-d H:i:s');
         $DB->update_record('plagiarism_origai_plagscan', $recordObj);

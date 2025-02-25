@@ -56,7 +56,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin
                 error_log('Error processing PDF file: ' . $e->getMessage());
                 $content = "";
             }
-        } else if (!empty($linkarray["file"]) && $linkarray["file"]->get_mimetype() === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'){
+        } else if (!empty($linkarray["file"]) && $linkarray["file"]->get_mimetype() === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
             //extract content from docx file
             $tempfile = $CFG->tempdir . '/' . $linkarray["file"]->get_filename();
             $linkarray["file"]->copy_content_to($tempfile);
@@ -110,7 +110,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin
             $isinstructor = has_capability('mod/assign:grade', $context);
         }
 
-        if ((!empty($linkarray["cmid"])) && (!empty($linkarray["content"]) || (!empty($linkarray["file"]) && ($linkarray["file"]->get_mimetype() === 'application/pdf'|| $linkarray["file"]->get_mimetype() === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'))) && $isinstructor) {
+        if ((!empty($linkarray["cmid"])) && (!empty($linkarray["content"]) || (!empty($linkarray["file"]) && ($linkarray["file"]->get_mimetype() === 'application/pdf' || $linkarray["file"]->get_mimetype() === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'))) && $isinstructor) {
 
             if (!plagiarism_origai_is_plugin_configured("mod_" . $coursemodule->modname)) {
                 return;
@@ -347,11 +347,45 @@ function plagiarism_origai_docx_to_text($filepath)
     try {
         $phpWord = PhpOffice\PhpWord\IOFactory::load($filepath);
         $text = '';
+
         foreach ($phpWord->getSections() as $section) {
             foreach ($section->getElements() as $element) {
+                //Check for normal text elements
                 if (method_exists($element, 'getText')) {
-                    $text .= $element->getText() . PHP_EOL;
+                    if(is_string($element->getText())){
+                        $text .= $element->getText() . PHP_EOL;
+                    }
+                    elseif(get_class($element->getText()) === 'PhpOffice\PhpWord\Element\TextRun'){
+                        foreach ($element->getText()->getElements() as $childElement) {
+                            if (method_exists($childElement, 'getText')) {
+                                $text .= $childElement->getText();
+                            }
+                        }
+                    }
                 }
+                //Handle TextRun elements safely
+                elseif (get_class($element) === 'PhpOffice\PhpWord\Element\TextRun') {
+                    foreach ($element->getElements() as $childElement) {
+                        if (method_exists($childElement, 'getText')) {
+                            $text .= $childElement->getText();
+                        }
+                    }
+                    $text .= PHP_EOL; // New line after a TextRun
+                }
+                // Handle Tables (if present)
+                elseif (get_class($element) === 'PhpOffice\PhpWord\Element\Table') {
+                    foreach ($element->getRows() as $row) {
+                        foreach ($row->getCells() as $cell) {
+                            foreach ($cell->getElements() as $cellElement) {
+                                if (method_exists($cellElement, 'getText')) {
+                                    $text .= $cellElement->getText() . " ";
+                                }
+                            }
+                        }
+                        $text .= PHP_EOL; // New line after each table row
+                    }
+                }
+                // Skip other unknown elements (Images, Shapes, etc.)
             }
         }
         return $text;
