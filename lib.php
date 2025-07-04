@@ -113,13 +113,13 @@ class plagiarism_plugin_origai extends plagiarism_plugin
         if ((!empty($linkarray["cmid"])) && (!empty($linkarray["content"]) || (!empty($linkarray["file"]) && ($linkarray["file"]->get_mimetype() === 'application/pdf' || $linkarray["file"]->get_mimetype() === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'))) && $isinstructor) {
 
             if (!plagiarism_origai_is_plugin_configured("mod_" . $coursemodule->modname)) {
-                return;
+                return "";
             }
 
             if ($coursemodule->modname == 'forum' || $coursemodule->modname == 'assign') {
                 $enabled = $DB->get_record('plagiarism_origai_config', array('cm' => $cmid));
-                if (!$enabled->value) {
-                    return;
+                if (!$enabled || $enabled && !$enabled->value) {
+                   return "";
                 }
             }
 
