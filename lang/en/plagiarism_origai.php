@@ -64,3 +64,5 @@ $string['standard'] = 'Standard';
 $string['lite'] = 'Lite';
 $string['turbo'] = 'Turbo';
 $string['multilang'] = 'Multi-Lang';
+$string['fileattachmentnotsupported'] = 'File attachment type not supported';
+$string['textextractionfailed'] = 'Failed to extract text';

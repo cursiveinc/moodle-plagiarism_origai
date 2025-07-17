@@ -25,6 +25,9 @@ global $CFG;
 require_once($CFG->dirroot . '/plagiarism/lib.php');
 require_once(__DIR__ . '/vendor/autoload.php');
 
+use plagiarism_origai\helpers\plagiarism_origai_text_extractor;
+
+
 class plagiarism_plugin_origai extends plagiarism_plugin
 {
     /**
@@ -40,31 +43,34 @@ class plagiarism_plugin_origai extends plagiarism_plugin
         //$userid, $file, $cmid, $course, $module
         $cmid = $linkarray['cmid'];
         $userid = $linkarray['userid'];
+        $fileerror = null;
 
         $content = "";
         if (!empty($linkarray['content'])) {
             $content = $linkarray['content'];
             $content = $linkarray['content'];
-        } else if (!empty($linkarray["file"]) && $linkarray["file"]->get_mimetype() === 'application/pdf') {
-            //extract content from pdf file
-            $tempfile = $CFG->tempdir . '/' . $linkarray["file"]->get_filename();
-            $linkarray["file"]->copy_content_to($tempfile);
+        } else if(
+            !empty($linkarray["file"]) &&
+            $linkarray["file"] instanceof \stored_file &&
+            $linkarray['file']->get_filename() !== '.'
+        ){
             try {
-                $content = plagiarism_origai_pdf_to_text($tempfile);
-                unlink($tempfile);
-            } catch (Exception $e) {
-                error_log('Error processing PDF file: ' . $e->getMessage());
+                $textextractor = new plagiarism_origai_text_extractor($linkarray['file']);
+                if (!$textextractor->is_mime_type_supported()) {
+                    throw new \core\exception\moodle_exception(get_string('fileattachmentnotsupported', 'plagiarism_origai'));
+                }
+                $extractedtext = $textextractor->extract();
+                if ($extractedtext) {
+                    $content = $extractedtext;
+                } else {
+                    throw new \core\exception\moodle_exception(get_string('textextractionfailed', 'plagiarism_origai'));
+                }
+            } catch (\core\exception\moodle_exception $e) {
+                $fileerror = $e->getMessage();
                 $content = "";
-            }
-        } else if (!empty($linkarray["file"]) && $linkarray["file"]->get_mimetype() === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
-            //extract content from docx file
-            $tempfile = $CFG->tempdir . '/' . $linkarray["file"]->get_filename();
-            $linkarray["file"]->copy_content_to($tempfile);
-            try {
-                $content = plagiarism_origai_docx_to_text($tempfile);
-                unlink($tempfile);
-            } catch (Exception $e) {
-                error_log('Error processing Docx file: ' . $e->getMessage());
+            } catch (\Throwable $e) {
+                error_log('Error extracting text from file: ' . $e->getMessage());
+                $fileerror = get_string('textextractionfailed', 'plagiarism_origai');
                 $content = "";
             }
         }
@@ -110,7 +116,24 @@ class plagiarism_plugin_origai extends plagiarism_plugin
             $isinstructor = has_capability('mod/assign:grade', $context);
         }
 
-        if ((!empty($linkarray["cmid"])) && (!empty($linkarray["content"]) || (!empty($linkarray["file"]) && ($linkarray["file"]->get_mimetype() === 'application/pdf' || $linkarray["file"]->get_mimetype() === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'))) && $isinstructor) {
+        if (!empty($fileerror) && $isinstructor) {
+            $PAGE->requires->js_init_code("
+                document.addEventListener('DOMContentLoaded', function load() {
+                    if (!window.jQuery) return setTimeout(load, 50);
+                    jQuery('[data-toggle=\"tooltip\"]').tooltip();
+                }, false);
+            ");
+            $output = '';
+            $output .= html_writer::tag('i', '', [
+                'class' => 'fa fa-exclamation-triangle me-2, text-danger',
+                'title' => $fileerror,
+                'aria-label' => $fileerror,
+                'data-toggle' => 'tooltip'
+            ]);
+            return $output;
+        }
+
+        if ((!empty($linkarray["cmid"])) && (!empty($content) || (!empty($linkarray["file"]) && ($linkarray["file"]->get_mimetype() === 'application/pdf' || $linkarray["file"]->get_mimetype() === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'))) && $isinstructor) {
 
             if (!plagiarism_origai_is_plugin_configured("mod_" . $coursemodule->modname)) {
                 return "";
@@ -326,71 +349,4 @@ function plagiarism_origai_coursemodule_edit_post_actions($data, $course)
         $DB->update_record('plagiarism_origai_config', $savedrecord);
     }
     return $data;
-}
-
-function plagiarism_origai_pdf_to_text($filepath)
-{
-    try {
-        $parser = new Smalot\PdfParser\Parser();
-        $pdf = $parser->parseFile($filepath);
-        $text = $pdf->getText();
-        return $text;
-
-    } catch (Exception $e) {
-        error_log('Error extracting text from PDF: ' . $e->getMessage());
-        return 'Error: Unable to extract text.';
-    }
-}
-
-function plagiarism_origai_docx_to_text($filepath)
-{
-    try {
-        $phpWord = PhpOffice\PhpWord\IOFactory::load($filepath);
-        $text = '';
-
-        foreach ($phpWord->getSections() as $section) {
-            foreach ($section->getElements() as $element) {
-                //Check for normal text elements
-                if (method_exists($element, 'getText')) {
-                    if(is_string($element->getText())){
-                        $text .= $element->getText() . PHP_EOL;
-                    }
-                    elseif(get_class($element->getText()) === 'PhpOffice\PhpWord\Element\TextRun'){
-                        foreach ($element->getText()->getElements() as $childElement) {
-                            if (method_exists($childElement, 'getText')) {
-                                $text .= $childElement->getText();
-                            }
-                        }
-                    }
-                }
-                //Handle TextRun elements safely
-                elseif (get_class($element) === 'PhpOffice\PhpWord\Element\TextRun') {
-                    foreach ($element->getElements() as $childElement) {
-                        if (method_exists($childElement, 'getText')) {
-                            $text .= $childElement->getText();
-                        }
-                    }
-                    $text .= PHP_EOL; // New line after a TextRun
-                }
-                // Handle Tables (if present)
-                elseif (get_class($element) === 'PhpOffice\PhpWord\Element\Table') {
-                    foreach ($element->getRows() as $row) {
-                        foreach ($row->getCells() as $cell) {
-                            foreach ($cell->getElements() as $cellElement) {
-                                if (method_exists($cellElement, 'getText')) {
-                                    $text .= $cellElement->getText() . " ";
-                                }
-                            }
-                        }
-                        $text .= PHP_EOL; // New line after each table row
-                    }
-                }
-                // Skip other unknown elements (Images, Shapes, etc.)
-            }
-        }
-        return $text;
-    } catch (Exception $e) {
-        error_log('Error extracting text from PDF: ' . $e->getMessage());
-        return 'Error: Unable to extract text.';
-    }
 }
