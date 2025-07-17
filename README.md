@@ -1,6 +1,6 @@
 # Originality.ai Moodle Plugin
 
-This plugin leverages the API from **Originality.AI** to provide on-demand, as-needed plagiarism (and coming soon — AI classification) detection. With it, you can cost-effectively provide plagiarism detection for several core Moodle activities (online text assignments, forums, and quizzes). Teachers have the ability to scan any submission and easily see the results right in Moodle or by opening the full report.
+This plugin leverages the API from **Originality.AI** to provide on-demand, as-needed plagiarism and AI detection. With it, you can cost-effectively provide plagiarism detection for several core Moodle activities (online text assignments, forums, and quizzes). Teachers have the ability to scan any submission and easily see the results right in Moodle or by opening the full report.
 
 At **Cursive Technology, Inc.**, we're focused on the writing process. By capturing key event data (also known by the scary euphemism "key logging"), we can make new opportunities for teaching, learning, and research in a low-cost, low-effort way, all in the existing workflows of your course and site.
 
