@@ -28,7 +28,7 @@ jobs:
         run: gem install github_changelog_generator faraday-retry
 
       - name: Generate CHANGELOG.md
-        run: github_changelog_generator --user joshuamoshood --project moodle-plagiarism_origai --token ${{ secrets.GITHUB_TOKEN }}
+        run: github_changelog_generator --user cursiveinc --project moodle-plagiarism_origai --token ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create Pull Request with changelog update
         uses: peter-evans/create-pull-request@v5
