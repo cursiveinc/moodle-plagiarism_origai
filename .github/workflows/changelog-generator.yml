@@ -1,0 +1,42 @@
+name: Generate Changelog
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: read
+  pull-requests: write
+
+jobs:
+  changelog:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1
+
+      - name: Install dependencies
+        run: gem install github_changelog_generator faraday-retry
+
+      - name: Generate CHANGELOG.md
+        run: github_changelog_generator --user cursiveinc --project moodle-plagiarism_origai --token ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create Pull Request with changelog update
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: update changelog"
+          branch: update/changelog-${{ github.ref_name }}-${{ github.run_number }}
+          base: main 
+          title: "Update changelog"
+          body: |
+            This PR updates the changelog automatically.
