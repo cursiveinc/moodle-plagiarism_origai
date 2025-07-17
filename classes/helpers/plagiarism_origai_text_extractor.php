@@ -29,7 +29,7 @@ class plagiarism_origai_text_extractor
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
         // 'application/rtf', // .rtf
         // 'application/vnd.oasis.opendocument.text', // .odt
-        // 'text/plain', //.txt
+        'text/plain', //.txt
         'application/pdf' // .pdf
     ];
 

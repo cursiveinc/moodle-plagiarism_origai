@@ -125,7 +125,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin
             ");
             $output = '';
             $output .= html_writer::tag('i', '', [
-                'class' => 'fa fa-exclamation-triangle me-2, text-danger',
+                'class' => 'fa fa-exclamation-triangle me-2 text-danger',
                 'title' => $fileerror,
                 'aria-label' => $fileerror,
                 'data-toggle' => 'tooltip'
