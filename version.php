@@ -14,16 +14,22 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+/**
+ * @package   plagiarism_origai
+ * @category  plagiarism
+ * @copyright Originality.ai, https://originality.ai
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'plagiarism_origai';
-$plugin->version =  2025071600;
+$plugin->version =  2025071800;
 $plugin->requires = 2020061500;
 $plugin->supported = [
     39,
     500,
 ];
 $plugin->release   = '1.1.5';
-$plugin->maturity  = MATURITY_STABLE;
+$plugin->maturity  = MATURITY_ALPHA;
 $plugin->cron      = 0;
