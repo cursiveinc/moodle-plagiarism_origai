@@ -41,8 +41,8 @@ class plagiarism_origai_text_extractor {
     protected $supportedmimetypes = [
         'application/msword', // .doc
         'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // .docx
-        // 'application/rtf', // .rtf
-        // 'application/vnd.oasis.opendocument.text', // .odt
+        'text/rtf', // .rtf
+        'application/vnd.oasis.opendocument.text', // .odt
         'text/plain', // .txt
         'application/pdf', // .pdf
     ];
@@ -71,6 +71,7 @@ class plagiarism_origai_text_extractor {
             return false;
         }
         $this->tempfile = $CFG->tempdir . '/' . $this->storedfile->get_filename();
+        $this->storedfile->copy_content_to($this->tempfile);
 
         try {
             switch($mimetype)
@@ -81,9 +82,12 @@ class plagiarism_origai_text_extractor {
                 case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
                     return $this->extract_from_docx();
                     break;
-                // case 'application/rtf': //TODO: Support .rtf file types
-                // case 'application/vnd.oasis.opendocument.text': // //TODO: Support .odt file types
-
+                case 'text/rtf': 
+                    return $this->extract_text_using_php_word('RTF');
+                    break;
+                case 'application/vnd.oasis.opendocument.text': 
+                    return $this->extract_text_using_php_word('ODText');
+                    break;
                 case 'text/plain':
                     return $this->storedfile->get_content();
                     break;
@@ -118,6 +122,27 @@ class plagiarism_origai_text_extractor {
         return $text;
     }
 
+    private function extract_text_using_php_word($reader)
+    {
+        $tempfile = $this->tempfile;
+        $text = '';
+        $reader = \PhpOffice\PhpWord\IOFactory::createReader($reader);
+        if ($reader->canRead($tempfile)) {
+            $phpWord = $reader->load($tempfile);
+            foreach ($phpWord->getSections() as $section) {
+                $elements = $section->getElements();
+                foreach ($elements as $element) {
+                    if (method_exists($element, 'getText')) {
+                        $text .= $element->getText() . "\n";
+                    }
+                }
+            }
+
+            return trim($text);
+        }
+        return $text;
+    }
+
     /**
      * Check if mime type is supported
      *
@@ -134,7 +159,6 @@ class plagiarism_origai_text_extractor {
      */
     protected function extract_from_doc() {
         $tempfile = $this->tempfile;
-        $this->storedfile->copy_content_to($tempfile);
         $filehandle = fopen($tempfile, "r");
         $line = @fread($filehandle, filesize($tempfile));
         $lines = explode(chr(0x0D), $line);
@@ -159,7 +183,6 @@ class plagiarism_origai_text_extractor {
         $stripedcontent = '';
         $content = '';
         $tempfile = $this->tempfile;
-        $this->storedfile->copy_content_to($tempfile);
 
         $zip = new \ZipArchive;
 
