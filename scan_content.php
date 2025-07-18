@@ -1,117 +1,65 @@
 <?php
+// This file is part of Moodle - https://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
+ /**
+ * Adhoc scan
+ * @package   plagiarism_origai
+ * @category  plagiarism
+ * @copyright Originality.ai, https://originality.ai
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 require_once ('../../config.php');
 require_once ($CFG->libdir . '/filelib.php');
+require_once (__DIR__ .'/lib.php');
 
-$scanid = required_param('scanid', PARAM_INT);
-$cmid = required_param('cmid', PARAM_INT);
-$itemid = optional_param('itemid', 0, PARAM_INT);
-$userid = required_param('userid', PARAM_INT);
-$modulename = required_param('coursemodule', PARAM_TEXT);
-$scantype = required_param('scantype', PARAM_TEXT);
-
-if (!$itemid) {
-    $itemid = null;
-}
-
-global $DB;
+use plagiarism_origai\helpers\plagiarism_origai_plugin_config;
+use plagiarism_origai\helpers\plagiarism_origai_action;
+use plagiarism_origai\enums\plagiarism_origai_status_enums;
 
 require_login();
-$coursemodule = get_coursemodule_from_id('', $cmid);
+require_sesskey();
+
+$cmid = required_param('cmid', PARAM_INT);
+$scanid = required_param('scanid', PARAM_INT);
+$modulename = required_param('coursemodule', PARAM_TEXT);
+$returnurl = required_param("returnurl", PARAM_LOCALURL);
+
+global $DB, $PAGE;
+
+$coursemodule = get_coursemodule_from_id($modulename, $cmid);
 $context = context_course::instance($coursemodule->course);
+
+$scan = plagiarism_origai_action::get_scan_record_by_id($scanid);
+
+if(
+    !$context || 
+    !$scan || 
+    ($scan && $scan->status != plagiarism_origai_status_enums::PENDING)
+){
+    redirect($returnurl, get_string('scanfailed', 'plagiarism_origai'), null, \core\output\notification::NOTIFY_ERROR);
+}
 
 require_capability('mod/assign:grade', $context);
 
-$apikey = get_config('plagiarism_origai', 'apikey');
-$apiurl = get_config('plagiarism_origai', 'apiurl').'/scan';
-$aimodel = get_config('plagiarism_origai', 'aiModel');
-
-if (empty($apikey) || empty($apiurl)) {
-    //redirect to grade/submission page with message that plugin is not configured.
+$enabled = plagiarism_origai_plugin_config::is_module_enabled($modulename, $cmid);
+if (!$enabled) {
+    redirect($returnurl, get_string('pluginname', 'plagiarism_origai') . "not enabled/configured", null, \core\output\notification::NOTIFY_ERROR);
 }
 
-$c = new curl();
-$c->setHeader(['Accept: application/json']);
-$c->setHeader(['X-OAI-API-KEY: ' . $apikey]);
-$c->setHeader(['Content-Type: application/json']);
+$scan->status = plagiarism_origai_status_enums::SCHEDULED;
+plagiarism_origai_action::update_scan_record($scan);
 
-// //fetch content from the database
-$recordObj = $DB->get_record('plagiarism_origai_plagscan', array('id' => $scanid, 'cmid' => $cmid, 'userid' => $userid, 'itemid' => $itemid, 'scan_type' => $scantype));
-if (isset($recordObj->content)) {
-    $request_string = json_encode(
-        array(
-            'content' => html_to_text($recordObj->content, 0),
-            'storeScan' => false,
-            'aiModel' => $aimodel,
-            'scan_ai' => ($scantype == 'ai')? true: false,
-            'scan_plag' => ($scantype == 'plagiarism')? true: false,
-            'scan_readability' => false,
-            'scan_grammar_spelling' => false
-        )
-    );
-    $response = $c->post($apiurl, params: $request_string);
-    $responseObj = json_decode($response);
-    $info = $c->get_info();
-    $httpcode = $info['http_code'];
-
-    if ($httpcode == 200) {
-        $recordObj->success = true;
-        $recordObj->public_link = $responseObj->properties->public_link;
-        if ($scantype == "plagiarism" && $responseObj->plagiarism!==null) {
-            $recordObj->total_text_score = substr($responseObj->plagiarism->score,0,9);
-            $recordObj->sources = count($responseObj->plagiarism->results);
-            $recordObj->flesch_grade_level = $responseObj->readability->readability->fleschGradeLevel;
-        } else if ($scantype == "ai") {
-            $recordObj->original_score = substr($responseObj->ai->confidence->Original,0,9);
-            $recordObj->ai_score = substr($responseObj->ai->confidence->AI,0,9);
-        }
-        $recordObj->update_time = date('Y-m-d H:i:s');
-        $DB->update_record('plagiarism_origai_plagscan', $recordObj);
-        if ($scantype == "plagiarism") {
-            if (isset($responseObj->plagiarism->results) && is_array($responseObj->plagiarism->results)) {
-                foreach ($responseObj->plagiarism->results as $result) {
-                    $resultArray = isset($result->results) && is_array($result->results) ? $result->results : [];
-                    $matches = [];
-                    foreach ($resultArray as $match) {
-                        $matchObj = new stdClass();
-                        $matchObj->scanid = $recordObj->id;
-                        $matchObj->website = $match->link;
-                        $matchObj->score = $match->scores[0]->score;
-                        $matchObj->ptext = $match->scores[0]->sentence;
-                        array_push($matches, $matchObj);
-                    }
-                    if(!empty($matches)){
-                        $DB->insert_records('plagiarism_origai_match', $matches);
-                    }
-                }
-            }
-        } else if ($scantype == "ai") {
-            if (isset($responseObj->ai->blocks) && is_array($responseObj->ai->blocks)) {
-                $blocks = [];
-                foreach ($responseObj->ai->blocks as $block) {
-                    $blockObj = new stdClass();
-                    $blockObj->scanid = $recordObj->id;
-                    $blockObj->fakescore = $block->result->fake;
-                    $blockObj->realscore = $block->result->real;
-                    $blockObj->ptext = $block->text;
-                    array_push($blocks, $blockObj);
-                }
-                if(!empty($blocks)){
-                    $DB->insert_records('plagiarism_origai_match', $blocks);
-                }
-            }
-        }
-    } else if ($httpcode == 422 || $httpcode == 500) {
-        $recordObj->success = false;
-        $recordObj->update_time = date('Y-m-d H:i:s');
-        if ($httpcode == 422) {
-            $recordObj->error = $responseObj->error;
-        } else {
-            $recordObj->error = $responseObj->message;
-        }
-        $DB->update_record('plagiarism_origai_plagscan', $recordObj);
-    }
-
-    $url = new moodle_url('/plagiarism/origai/plagiarism_origai_report.php', array('scanid' => $scanid, 'cmid' => $cmid, 'itemid' => $itemid, 'userid' => $userid, 'modulename' => $modulename, 'scantype' => $scantype));
-    redirect($url);
-}
+redirect($returnurl, get_string('scanqueuednotification', 'plagiarism_origai'), null, \core\output\notification::NOTIFY_INFO);
