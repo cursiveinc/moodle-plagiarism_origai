@@ -48,26 +48,23 @@ class assessment_listener {
     public static function assign_submitted($event) {
         global $DB;
         $eventdata = $event->get_data();
-        file_put_contents(__DIR__ . "/assign_event.json", json_encode($eventdata), FILE_APPEND);
+
         // Get course module.
         $coursemodule = static::get_coursemodule($eventdata, 'assign');
 
         // Stop event if the course module is not found.
         if (!$coursemodule) {
-            file_put_contents(__DIR__ . "/debug.json", json_encode(['cm not found']), FILE_APPEND);
             return;
         }
 
         // Check if module is enabled for this event.
         if (!plagiarism_origai_plugin_config::is_module_enabled($coursemodule->modname, $coursemodule->id)) {
-            file_put_contents(__DIR__ . "/debug.json", json_encode(['module_enabled is false']), FILE_APPEND);
             return;
         }
 
         if (!plagiarism_origai_plugin_config::get_cm_config(
             $coursemodule->id, 'plagiarism_origai_automated_scan', false
         )) {
-            file_put_contents(__DIR__ . "/debug.json", json_encode(['automated is false']), FILE_APPEND);
             return;
         }
 
@@ -165,7 +162,6 @@ class assessment_listener {
                 }
             }
         } catch (\Throwable $th) {
-            file_put_contents(__DIR__ . "/debug.json", json_encode([$th->getMessage()]), FILE_APPEND);
             debugging("Error queuing submission, exception message: " . $th->getMessage());
         }
     }
