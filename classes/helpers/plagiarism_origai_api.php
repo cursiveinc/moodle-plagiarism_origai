@@ -111,7 +111,7 @@ class plagiarism_origai_api {
     /**
      * Scan a batch of content with the originality API
      * @param array $batch
-     * @return array|false
+     * @return object|false
      *
      */
     public function batch_scan(array $batch) {
@@ -134,7 +134,11 @@ class plagiarism_origai_api {
                 $payload,
                 ['X-OAI-API-KEY' => $this->apikey]
             );
-            return $response;
+            list($responsebody, $statuscode) = $response;
+            if($statuscode != static::RESPONSEOK && empty($responsebody)) {
+                return false;
+            }
+            return json_decode($responsebody);
         } catch (\Throwable $th) {
             debugging("Batch scan failed: " . $th->getMessage());
             return false;
@@ -142,8 +146,9 @@ class plagiarism_origai_api {
     }
 
     /**
+     * Get report 
      * @param string $identifier
-     * @return array|false
+     * @return object|false
      */
     public function get_report($identifier) {
         $httpclient = new plagiarism_origai_http_client();
@@ -153,8 +158,11 @@ class plagiarism_origai_api {
                 $this->baseurl . '/moodle/report/' . $identifier,
                 ['X-OAI-API-KEY' => $this->apikey]
             );
-
-            return $response;
+            list($responsebody, $statuscode) = $response;
+            if($statuscode != static::RESPONSEOK && empty($responsebody)) {
+                return false;
+            }
+            return json_decode($responsebody);
         } catch (\Throwable $th) {
             debugging("Batch scan failed: " . $th->getMessage());
             return false;

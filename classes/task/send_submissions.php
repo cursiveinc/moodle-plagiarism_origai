@@ -85,15 +85,6 @@ class send_submissions extends \core\task\scheduled_task
             $batch = $this->prepare_batch($queuedsubmissions);
 
             $response = $originalityapi->batch_scan($batch);
-            if (is_array($response)) {
-                list($responsebody, $statuscode) = $response;
-                if ($statuscode != 200) {
-                    $response = false;
-                } else {
-                    $response = json_decode($responsebody);
-                }
-            }
-
             if ($response === false || (isset($response->success) && !$response->success)) {
 
                 $errormessage = isset($response->message) ?

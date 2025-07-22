@@ -92,20 +92,11 @@ if ($modulename != "quiz" && !$moduleenabled) {
     $api = new \plagiarism_origai\helpers\plagiarism_origai_api();
     $response = $api->get_report($uniqueid);
 
-    if (is_array($response)) {
-        list($responsebody, $statuscode) = $response;
-        if ($statuscode != 200) {
-            $response = false;
-        } else {
-            $response = json_decode($responsebody);
-        }
-    }
-
     if (
         $response === false || (isset($response->success) && !$response->success)
     ) {
-        $error = isset($response->error) ?
-            $response->error : get_string('disabledformodule', 'plagiarism_origai');
+        $error = isset($response->message) ?
+            $response->message : get_string('disabledformodule', 'plagiarism_origai');
         echo html_writer::div($error, 'alert alert-danger');
     } else {
         // Container
