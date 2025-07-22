@@ -30,6 +30,6 @@ $plugin->supported = [
     39,
     500,
 ];
-$plugin->release   = '1.1.5';
+$plugin->release   = '2.0.0';
 $plugin->maturity  = MATURITY_ALPHA;
 $plugin->cron      = 0;
