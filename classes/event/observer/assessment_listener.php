@@ -31,7 +31,6 @@ use plagiarism_origai\enums\plagiarism_origai_status_enums;
 use plagiarism_origai\helpers\plagiarism_origai_plugin_config;
 use plagiarism_origai\helpers\plagiarism_origai_action;
 use plagiarism_origai\helpers\plagiarism_origai_text_extractor;
-use mod_quiz\quiz_attempt;
 
 require_once($CFG->dirroot . '/question/type/essay/questiontype.php');
 
@@ -171,106 +170,19 @@ class assessment_listener {
      * @param \mod_quiz\event\attempt_submitted $event
      */
     public static function quiz_submitted($event) {
-        global $DB;
         $eventdata = $event->get_data();
+        // Set up and queue adhoc task
+        $task = new \plagiarism_origai\task\quiz_submission_scan_task();
+        $task->set_component('plagiarism_origai');
 
-        // Get course module.
-        $coursemodule = static::get_coursemodule($eventdata, 'quiz');
+        // Delay by 10s to ensure responsesummary is saved before accessing it
+        $task->set_next_run_time(time() + 10);
 
-        // Stop event if the course module is not fonund.
-        if (!$coursemodule) {
-            return;
-        }
+        $task->set_custom_data([
+            'eventdata' => $eventdata
+        ]);
 
-        // Check if module is enabled for this event.
-        if (!plagiarism_origai_plugin_config::is_module_enabled($coursemodule->modname, $coursemodule->id)) {
-            return;
-        }
-
-        if (!plagiarism_origai_plugin_config::get_cm_config(
-            $coursemodule->id, 'plagiarism_origai_automated_scan', false
-        )) {
-            return;
-        }
-
-        $quizattempt = $event->get_record_snapshot('quiz_attempts', $event->objectid);
-
-        $quiz = $DB->get_record('quiz', [
-            'id' => $quizattempt->quiz,
-        ], 'name');
-        $title = null;
-        if ($quiz) {
-            $title = substr($quiz->name, 0, 255);
-        }
-
-        $attempt = quiz_attempt::create($eventdata['objectid']);
-        foreach ($attempt->get_slots() as $slot) {
-            $questionattempt = $attempt->get_question_attempt($slot);
-            $qtype = $questionattempt->get_question()->qtype;
-            if ($qtype instanceof \qtype_essay) {
-                $attachments = $questionattempt->get_last_qt_files('attachments', $eventdata['contextid']);
-                $content = $questionattempt->get_response_summary();
-
-                try {
-                    $userid = $eventdata['userid'];
-                    $scantypes = [
-                        plagiarism_origai_scan_type_enums::PLAGIARISM,
-                        plagiarism_origai_scan_type_enums::AI,
-                    ];
-
-                    if (!empty($content)) {
-                        foreach ($scantypes as $scantype) {
-                            plagiarism_origai_action::queue_new_submission([
-                                'scan_type' => $scantype,
-                                'cmid' => $coursemodule->id,
-                                'userid' => $userid,
-                                'itemid' => $eventdata['objectid'],
-                                'title' => $title ?? substr(html_to_text($content, 0, false), 0, 255),
-                                'content' => $content,
-                                'contenthash' => plagiarism_origai_action::generate_content_hash($content),
-                            ]);
-                        }
-                    }
-                    foreach ($attachments as $pathnamehash) {
-                        $textextractor = plagiarism_origai_text_extractor::make(null, $pathnamehash);
-                        $content = $textextractor->extract();
-                        if (!$content) {
-                            if ($textextractor->get_stored_file()->get_filename() === '.') {
-                                continue;
-                            }
-                            foreach ($scantypes as $scantype) {
-                                plagiarism_origai_action::queue_new_submission([
-                                    'scan_type' => $scantype,
-                                    'cmid' => $coursemodule->id,
-                                    'userid' => $userid,
-                                    'itemid' => $eventdata['objectid'],
-                                    'title' => $title ?? substr(html_to_text($content, 0, false), 0, 255),
-                                    'content' => null,
-                                    'contenthash' => null,
-                                    'error' => 'Content is invalid or unsupported',
-                                    'status' => plagiarism_origai_status_enums::SKIPPED,
-                                ]);
-                            }
-                            continue;
-                        }
-
-                        foreach ($scantypes as $scantype) {
-                            plagiarism_origai_action::queue_new_submission([
-                                'scan_type' => $scantype,
-                                'cmid' => $coursemodule->id,
-                                'userid' => $userid,
-                                'itemid' => $eventdata['objectid'],
-                                'title' => $title ?? substr(html_to_text($content, 0, false), 0, 255),
-                                'content' => $content,
-                                'contenthash' => plagiarism_origai_action::generate_content_hash($content),
-                            ]);
-                        }
-                    }
-                } catch (\Throwable $th) {
-                    debugging("Error queuing submission, exception message: " . $th->getMessage());
-                }
-            }
-        }
+        \core\task\manager::queue_adhoc_task($task);   
     }
 
     /**

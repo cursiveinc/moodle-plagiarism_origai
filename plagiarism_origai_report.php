@@ -29,14 +29,9 @@ use core\output\html_writer;
 // Get url params.
 $scanid = required_param('scanid', PARAM_INT);
 $cmid = required_param('cmid', PARAM_INT);
-$itemid = optional_param('itemid', 0, PARAM_INT);
 $userid = required_param('userid', PARAM_INT);
 $modulename = required_param('modulename', PARAM_TEXT);
 $scantype = required_param('scantype', PARAM_TEXT);
-
-if (!$itemid) {
-    $itemid = null;
-}
 
 // Get instance modules.
 $cm = get_coursemodule_from_id($modulename, $cmid, 0, false, MUST_EXIST);
@@ -56,7 +51,6 @@ $PAGE->set_url(
     [
         'scanid' => $scanid,
         'cmid' => $cmid,
-        'itemid' => $itemid,
         'userid' => $userid,
         'modulename' => $modulename,
     ]
@@ -85,109 +79,113 @@ if ($modulename != "quiz" && !$moduleenabled) {
     $moduledata = $DB->get_record($cm->modname, ['id' => $cm->instance]);
     $scanresult = $DB->get_record(
         'plagiarism_origai_plagscan', 
-        ['id' => $scanid, 'cmid' => $cmid, 'itemid' => $itemid, 'userid' => $userid, 'scan_type' => $scantype]
+        ['id' => $scanid, 'cmid' => $cmid, 'userid' => $userid, 'scan_type' => $scantype]
     );
+    if ($scanresult) {
+        $uniqueid = basename($scanresult->public_link);
+        $api = new \plagiarism_origai\helpers\plagiarism_origai_api();
+        $response = $api->get_report($uniqueid);
 
-    $uniqueid = basename($scanresult->public_link);
-    $api = new \plagiarism_origai\helpers\plagiarism_origai_api();
-    $response = $api->get_report($uniqueid);
+        if (
+            $response === false || (isset($response->success) && !$response->success)
+        ) {
+            $error = isset($response->message) ?
+                $response->message : get_string('scanreportfailed', 'plagiarism_origai');
+            echo html_writer::div($error, 'alert alert-danger');
+        } else {
+            // Container
+            $report = html_writer::start_div(
+                'origai-container',
+                ['id' => 'origai-container', 'style' => 'position: relative;']
+            );
 
-    if (
-        $response === false || (isset($response->success) && !$response->success)
-    ) {
-        $error = isset($response->message) ?
-            $response->message : get_string('disabledformodule', 'plagiarism_origai');
-        echo html_writer::div($error, 'alert alert-danger');
-    } else {
-        // Container
-        $report = html_writer::start_div(
-            'origai-container',
-            ['id' => 'origai-container', 'style' => 'position: relative;']
-        );
+            $viewinfullscreen = html_writer::link(
+                '#',
+                get_string('fullscreenview', 'plagiarism_origai') .
+                    html_writer::tag('i', '', [
+                        'class' => 'fa-solid fa-up-right-and-down-left-from-center ml-2',
+                        'title' => get_string('fullscreenview', 'plagiarism_origai'),
+                    ]),
+                [
+                    'id' => 'origai-fullscreen-btn',
+                    'class' => 'origai-action-link',
+                    'style' => 'cursor: pointer; text-decoration: none;',
+                ]
+            );
 
-        $viewinfullscreen = html_writer::link(
-            '#',
-            get_string('fullscreenview', 'plagiarism_origai') .
-                html_writer::tag('i', '', [
-                    'class' => 'fa-solid fa-up-right-and-down-left-from-center ml-2',
-                    'title' => get_string('fullscreenview', 'plagiarism_origai'),
-                ]),
-            [
-                'id' => 'origai-fullscreen-btn',
-                'class' => 'origai-action-link',
-                'style' => 'cursor: pointer; text-decoration: none;',
-            ]
-        );
-
-        echo html_writer::div($viewinfullscreen, 'my-3');
-
-
-        // Responsive iframe wrapper.
-        $report .= html_writer::start_div('', [
-            'id' => 'origai-iframe-wrapper',
-            'style' => 'width: 100%; height: 100vh; overflow: hidden; position: relative;',
-        ]);
-
-        $iframeurl = $response->data->report_link;
+            echo html_writer::div($viewinfullscreen, 'my-3');
 
 
-        $report .= html_writer::tag('iframe', '', [
-            'src' => $iframeurl,
-            'style' => 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;',
-            'allowfullscreen' => 'true',
-            'loading' => 'lazy',
-            'title' => get_string('reportpagetitle', 'plagiarism_origai'),
-        ]);
+            // Responsive iframe wrapper.
+            $report .= html_writer::start_div('', [
+                'id' => 'origai-iframe-wrapper',
+                'style' => 'width: 100%; height: 100vh; overflow: hidden; position: relative;',
+            ]);
 
-        $report .= html_writer::end_div(); // iframe-wrapper
-        $report .= html_writer::end_div(); // container
+            $iframeurl = $response->data->report_link;
 
-        echo $report;
 
-        $PAGE->requires->js_init_code("
-        const button = document.getElementById('origai-fullscreen-btn');
-        const iframe = document.querySelector('#origai-iframe-wrapper iframe');
+            $report .= html_writer::tag('iframe', '', [
+                'src' => $iframeurl,
+                'style' => 'position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: none;',
+                'allowfullscreen' => 'true',
+                'loading' => 'lazy',
+                'title' => get_string('reportpagetitle', 'plagiarism_origai'),
+            ]);
 
-        if (button && iframe) {
-            button.addEventListener('click', function () {
-                if (
-                    document.fullscreenEnabled ||
-                    document.webkitFullscreenEnabled ||
-                    document.mozFullScreenEnabled ||
-                    document.msFullscreenEnabled
-                ) {
-                    if (iframe.requestFullscreen) {
-                        iframe.requestFullscreen();
-                    } else if (iframe.webkitRequestFullscreen) {
-                        iframe.webkitRequestFullscreen();
-                    } else if (iframe.mozRequestFullScreen) {
-                        iframe.mozRequestFullScreen();
-                    } else if (iframe.msRequestFullscreen) {
-                        iframe.msRequestFullscreen();
+            $report .= html_writer::end_div(); // iframe-wrapper
+            $report .= html_writer::end_div(); // container
+
+            echo $report;
+
+            $PAGE->requires->js_init_code("
+                const button = document.getElementById('origai-fullscreen-btn');
+                const iframe = document.querySelector('#origai-iframe-wrapper iframe');
+
+                if (button && iframe) {
+                    button.addEventListener('click', function () {
+                        if (
+                            document.fullscreenEnabled ||
+                            document.webkitFullscreenEnabled ||
+                            document.mozFullScreenEnabled ||
+                            document.msFullscreenEnabled
+                        ) {
+                            if (iframe.requestFullscreen) {
+                                iframe.requestFullscreen();
+                            } else if (iframe.webkitRequestFullscreen) {
+                                iframe.webkitRequestFullscreen();
+                            } else if (iframe.mozRequestFullScreen) {
+                                iframe.mozRequestFullScreen();
+                            } else if (iframe.msRequestFullscreen) {
+                                iframe.msRequestFullscreen();
+                            }
+                        } else {
+                            alert('Fullscreen not supported in your browser');
+                        }
+                    });
+
+                    function fullscreenChange() {
+                        if (document.fullscreenElement ||
+                            document.webkitIsFullScreen ||
+                            document.mozFullScreen ||
+                            document.msFullscreenElement) {
+                            console.log('Entered fullscreen');
+                        } else {
+                            console.log('Exited fullscreen');
+                        }
+                        iframe.src = iframe.src;
                     }
-                } else {
-                    alert('Fullscreen not supported in your browser');
-                }
-            });
 
-            function fullscreenChange() {
-                if (document.fullscreenElement ||
-                    document.webkitIsFullScreen ||
-                    document.mozFullScreen ||
-                    document.msFullscreenElement) {
-                    console.log('Entered fullscreen');
-                } else {
-                    console.log('Exited fullscreen');
+                    document.addEventListener('fullscreenchange', fullscreenChange);
+                    document.addEventListener('webkitfullscreenchange', fullscreenChange);
+                    document.addEventListener('mozfullscreenchange', fullscreenChange);
+                    document.addEventListener('MSFullscreenChange', fullscreenChange);
                 }
-                iframe.src = iframe.src;
-            }
-
-            document.addEventListener('fullscreenchange', fullscreenChange);
-            document.addEventListener('webkitfullscreenchange', fullscreenChange);
-            document.addEventListener('mozfullscreenchange', fullscreenChange);
-            document.addEventListener('MSFullscreenChange', fullscreenChange);
+            ");
         }
-    ");
+    }
+    else {
+        echo html_writer::div(get_string('scanreportfailed', 'plagiarism_origai'), 'alert alert-warning');
     }
 }
 echo $OUTPUT->footer();
