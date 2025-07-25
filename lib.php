@@ -128,6 +128,16 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
             $isinstructor = has_capability('mod/assign:grade', $context);
         }
 
+        static $studentcanviewreport;
+        if (empty($studentcanviewreport)) {
+            $studentcanviewreport = plagiarism_origai_plugin_config::get_cm_config(
+                $cmid,
+                'plagiarism_origai_allow_student_report_access',
+                false
+            );
+        }
+
+        // Display file errors to instructor.
         if (!empty($fileerror) && $isinstructor) {
             $PAGE->requires->js_init_code("
                 document.addEventListener('DOMContentLoaded', function load() {
@@ -145,7 +155,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
             return $output;
         }
 
-        if (!$isinstructor || !$cmid || !$content) {
+        if ((!$isinstructor && !$studentcanviewreport) || !$cmid || !$content) {
             return '';
         }
 
@@ -192,10 +202,20 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
             $responses[] = $record;
         }
 
+        // Skip result if scan isnt completed.
+        if ((!$isinstructor && $studentcanviewreport)) {
+            $scanwithresults = array_filter($responses, function ($response) {
+                return $response->success;
+            });
+            if (count($scanwithresults) == 0) {
+                return '';
+            }
+        }
+
         $output = '';
-        // Main container
+        // Main container.
         $output = html_writer::start_div('origai-report-container');
-        // Logo section
+        // Logo section.
         $output .= html_writer::div(
             html_writer::img(
                 $OUTPUT->image_url('originality-logo', 'plagiarism_origai'),
@@ -205,9 +225,14 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
             'origai-logo-container'
         );
 
-        // generate links for both scan types.
+        // Generate links for both scan types.
         foreach ($responses as $response) {
-            // Handle pending state
+            if ((!$isinstructor && $studentcanviewreport)) {
+                if (!$response->success) {
+                    continue;
+                }
+            }
+            // Handle pending state.
             if ($response->status == plagiarism_origai_status_enums::PENDING) {
                 $iconclass = $response->scan_type == plagiarism_origai_scan_type_enums::AI
                     ? 'fa-brain' : 'fa-copy';
@@ -567,6 +592,12 @@ function plagiarism_origai_coursemodule_standard_elements($formwrapper, $mform) 
 
         $mform->addHelpButton('plagiarism_origai_automated_scan', 'enableautomatedscan', 'plagiarism_origai');
 
+        $mform->addElement(
+            'advcheckbox',
+            'plagiarism_origai_allow_student_report_access',
+            get_string('allowstudentreportaccess', 'plagiarism_origai')
+        );
+
         $cmid = optional_param('update', null, PARAM_INT);
         $savedvalues = $DB->get_records_menu('plagiarism_origai_config', ['cm' => $cmid], '', 'name,value');
 
@@ -587,12 +618,18 @@ function plagiarism_origai_coursemodule_standard_elements($formwrapper, $mform) 
                 isset($savedvalues['plagiarism_origai_automated_scan']) ?
                     $savedvalues['plagiarism_origai_automated_scan'] : 0
             );
+            $mform->setDefault(
+                'plagiarism_origai_allow_student_report_access',
+                isset($savedvalues['plagiarism_origai_allow_student_report_access']) ?
+                    $savedvalues['plagiarism_origai_allow_student_report_access'] : 0
+            );
         } else {
 
             $mform->setDefaults([
                 'plagiarism_origai_enable' => 0,
                 'plagiarism_origai_ai_model' => $admindefaultmodel,
                 'plagiarism_origai_automated_scan' => 0,
+                'plagiarism_origai_allow_student_report_access' => 0
             ]);
         }
     }
@@ -620,6 +657,7 @@ function plagiarism_origai_coursemodule_edit_post_actions($data, $course) {
         "plagiarism_origai_enable",
         "plagiarism_origai_ai_model",
         "plagiarism_origai_automated_scan",
+        "plagiarism_origai_allow_student_report_access"
     ];
     foreach ($cmproperties as $cmproperty) {
         plagiarism_origai_plugin_config::set_cm_config(

@@ -39,6 +39,7 @@ $string['plagiarismscan'] = 'Plagiarism Scan from Originality.AI';
 $string['aiscan'] = 'AI Scan from OriginalityAI';
 $string['reportpagetitle'] = 'Originality AI Scan Report';
 $string['nopageaccess'] = 'Access Denied to this Page';
+$string['allowstudentreportaccess'] = 'Allow student access to view report';
 $string['matchpercentage'] = 'Match %: ';
 $string['aipercentage'] = '{$a} Likely AI';
 $string['humanpercentage'] = '{$a} Likely Original';
