@@ -71,10 +71,9 @@ $string['privacy:metadata:plagiarism_origai_plagscan:updatedtime'] = 'A timestam
 $string['privacy:metadata:plagiarism_origai_client'] = 'In order to generate plagiarism report, submission data needs to be exchanged with OriginalityAI.';
 $string['privacy:metadata:plagiarism_origai_client:submission_content'] = 'The submission content is sent to OriginalityAI for plagiarism report.';
 $string['aiModel'] = 'AI Model';
-$string['aiModel_help'] = 'Select the AI model to be used for AI detection.<br>For more information, please refer to <a target="_blank" href="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX">our guide</a>.<br><br><br>';
+$string['aiModel_help'] = 'English for optimized English content or Multi-lang for support across multiple languages.';
 $string['standard'] = 'Standard';
-$string['lite'] = 'Lite';
-$string['turbo'] = 'Turbo';
+$string['lite'] = 'English';
 $string['multilang'] = 'Multi-Lang';
 $string['fileattachmentnotsupported'] = 'File attachment type not supported';
 $string['textextractionfailed'] = 'Failed to extract text';

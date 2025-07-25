@@ -78,7 +78,6 @@ class plagiarism_origai_plugin_config {
     public static function get_models() {
         return [
             'lite' => get_string('lite', 'plagiarism_origai'),
-            'turbo' => get_string('turbo', 'plagiarism_origai'),
             'multilang' => get_string('multilang', 'plagiarism_origai'),
         ];
     }
