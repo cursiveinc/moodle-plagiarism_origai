@@ -15,12 +15,12 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
  /**
- * Resumit failed scans
- * @package   plagiarism_origai
- * @category  plagiarism
- * @copyright Originality.ai, https://originality.ai
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+  * Resumit failed scans
+  * @package   plagiarism_origai
+  * @category  plagiarism
+  * @copyright Originality.ai, https://originality.ai
+  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+  */
 require_once('../../config.php');
 require_once($CFG->libdir . '/filelib.php');
 require_once(__DIR__ . '/lib.php');
@@ -67,8 +67,7 @@ switch ($mode) {
 }
 
 
-function resubmit_single_failed_scan($scanid, $returnurl)
-{
+function resubmit_single_failed_scan($scanid, $returnurl) {
     $scan = plagiarism_origai_action::get_scan_record_by_id($scanid);
     if (
         !$scan ||

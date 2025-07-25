@@ -15,17 +15,17 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
  /**
- * Scan report page
- * @package   plagiarism_origai
- * @category  plagiarism
- * @copyright Originality.ai, https://originality.ai
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+  * Scan report page
+  * @package   plagiarism_origai
+  * @category  plagiarism
+  * @copyright Originality.ai, https://originality.ai
+  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+  */
 require(dirname(dirname(__FILE__)) . '/../config.php');
 require_once('../origai/lib.php');
 
 use core\output\html_writer;
-use \plagiarism_origai\helpers\plagiarism_origai_plugin_config;
+use plagiarism_origai\helpers\plagiarism_origai_plugin_config;
 
 // Get url params.
 $scanid = required_param('scanid', PARAM_INT);
@@ -73,7 +73,7 @@ $instructor = has_capability('mod/assign:grade', $context);
 
 $moduleenabled = plagiarism_origai_is_plugin_configured('mod_' . $cm->modname);
 
-$studentcanViewreport = plagiarism_origai_plugin_config::get_cm_config(
+$studentcanviewreport = plagiarism_origai_plugin_config::get_cm_config(
     $cmid,
     'plagiarism_origai_allow_student_report_access',
     false
@@ -83,10 +83,10 @@ if (!$moduleenabled) {
     echo html_writer::div(get_string('disabledformodule', 'plagiarism_origai'), 'alert alert-warning');
 } else {
     $owners = [$userid];
-    if ($instructor || ($studentcanViewreport && in_array($USER->id, $owners))) {
+    if ($instructor || ($studentcanviewreport && in_array($USER->id, $owners))) {
         $moduledata = $DB->get_record($cm->modname, ['id' => $cm->instance]);
         $scanresult = $DB->get_record(
-            'plagiarism_origai_plagscan', 
+            'plagiarism_origai_plagscan',
             ['id' => $scanid, 'cmid' => $cmid, 'userid' => $userid, 'scan_type' => $scantype]
         );
         if ($scanresult) {
@@ -139,7 +139,7 @@ if (!$moduleenabled) {
                     'allowfullscreen' => 'true',
                     'loading' => 'lazy',
                     'title' => get_string('reportpagetitle', 'plagiarism_origai'),
-                    'sandbox' => 'allow-scripts allow-same-origin'
+                    'sandbox' => 'allow-scripts allow-same-origin',
                 ]);
 
                 $report .= html_writer::end_div(); // iframe-wrapper

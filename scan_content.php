@@ -15,12 +15,12 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
  /**
- * Adhoc scan
- * @package   plagiarism_origai
- * @category  plagiarism
- * @copyright Originality.ai, https://originality.ai
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
+  * Adhoc scan
+  * @package   plagiarism_origai
+  * @category  plagiarism
+  * @copyright Originality.ai, https://originality.ai
+  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+  */
 require_once ('../../config.php');
 require_once ($CFG->libdir . '/filelib.php');
 require_once (__DIR__ .'/lib.php');
@@ -45,8 +45,8 @@ $context = context_course::instance($coursemodule->course);
 $scan = plagiarism_origai_action::get_scan_record_by_id($scanid);
 
 if(
-    !$context || 
-    !$scan || 
+    !$context ||
+    !$scan ||
     ($scan && $scan->status != plagiarism_origai_status_enums::PENDING)
 ){
     redirect($returnurl, get_string('scanfailed', 'plagiarism_origai'), null, \core\output\notification::NOTIFY_ERROR);

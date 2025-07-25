@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of the plagiarism_origai plugin for Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -38,30 +37,28 @@ use plagiarism_origai\enums\plagiarism_origai_status_enums;
  * Class send_submissions
  * @package plagiarism_origai\task
  */
-class send_submissions extends \core\task\scheduled_task
-{
+class send_submissions extends \core\task\scheduled_task {
+
 
     /** @var string */
     const CRON_MAX_LOOP = 2;
 
     /** @var string */
     const CHUNK_SIZE = 10;
-    
+
     /**
      * Return the task's name as shown in admin screens.
      *
      * @return string
      */
-    public function get_name()
-    {
+    public function get_name() {
         return get_string('sendqueuedsubmissionstaskname', 'plagiarism_origai');
     }
 
     /**
      * Execute the task.
      */
-    public function execute()
-    {
+    public function execute() {
         $this->send_submissions();
     }
 
@@ -70,8 +67,7 @@ class send_submissions extends \core\task\scheduled_task
      * @throws \coding_exception
      * @return void
      */
-    private function send_submissions()
-    {
+    private function send_submissions() {
         $loopcount = 0;
         $originalityapi = new plagiarism_origai_api();
         if (!$originalityapi->test_connection()) {
@@ -99,7 +95,6 @@ class send_submissions extends \core\task\scheduled_task
                 continue;
             }
 
-
             $queuedsubmissionindex = array_values($queuedsubmissions);
             $responsedata = array_map(function ($item, $index) use ($queuedsubmissionindex) {
                 $item->id = $queuedsubmissionindex[$index]->id;
@@ -107,7 +102,6 @@ class send_submissions extends \core\task\scheduled_task
             }, $response->data, array_keys($response->data));
 
             plagiarism_origai_action::handle_batch_results($responsedata);
-
 
             $loopcount++;
         }
@@ -118,8 +112,7 @@ class send_submissions extends \core\task\scheduled_task
      * @param $records
      * @return array
      */
-    private function prepare_batch($records)
-    {
+    private function prepare_batch($records) {
         $batch = [];
         $cmids = [];
         $scanrecordids = [];
@@ -138,7 +131,7 @@ class send_submissions extends \core\task\scheduled_task
                 'ai_model' => $cmsettings[$record->cmid]['plagiarism_origai_ai_model'] ?? plagiarism_origai_plugin_config::get_default_model(),
                 'content' => $record->content,
                 'scan_ai' => $record->scan_type == plagiarism_origai_scan_type_enums::AI,
-                'scan_plag' => $record->scan_type == plagiarism_origai_scan_type_enums::PLAGIARISM
+                'scan_plag' => $record->scan_type == plagiarism_origai_scan_type_enums::PLAGIARISM,
             ];
             $batch[] = $payload;
         }

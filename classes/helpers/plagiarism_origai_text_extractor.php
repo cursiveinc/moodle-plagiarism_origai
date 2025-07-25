@@ -82,10 +82,10 @@ class plagiarism_origai_text_extractor {
                 case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
                     return $this->extract_from_docx();
                     break;
-                case 'text/rtf': 
+                case 'text/rtf':
                     return $this->extract_text_using_php_word('RTF');
                     break;
-                case 'application/vnd.oasis.opendocument.text': 
+                case 'application/vnd.oasis.opendocument.text':
                     return $this->extract_text_using_php_word('ODText');
                     break;
                 case 'text/plain':
@@ -122,14 +122,13 @@ class plagiarism_origai_text_extractor {
         return $text;
     }
 
-    private function extract_text_using_php_word($reader)
-    {
+    private function extract_text_using_php_word($reader) {
         $tempfile = $this->tempfile;
         $text = '';
         $reader = \PhpOffice\PhpWord\IOFactory::createReader($reader);
         if ($reader->canRead($tempfile)) {
-            $phpWord = $reader->load($tempfile);
-            foreach ($phpWord->getSections() as $section) {
+            $phpword = $reader->load($tempfile);
+            foreach ($phpword->getSections() as $section) {
                 $elements = $section->getElements();
                 foreach ($elements as $element) {
                     if (method_exists($element, 'getText')) {

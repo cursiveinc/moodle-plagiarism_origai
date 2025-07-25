@@ -146,7 +146,7 @@ class plagiarism_origai_api {
     }
 
     /**
-     * Get report 
+     * Get report
      * @param string $identifier
      * @return object|false
      */

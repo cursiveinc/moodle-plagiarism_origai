@@ -104,7 +104,7 @@ class assessment_listener {
         }
 
         try {
-            $userid = empty($eventdata['relateduserid']) ? 
+            $userid = empty($eventdata['relateduserid']) ?
                 $eventdata['userid'] : $eventdata['relateduserid'];
             $scantypes = [
                 plagiarism_origai_scan_type_enums::PLAGIARISM,
@@ -179,10 +179,10 @@ class assessment_listener {
         $task->set_next_run_time(time() + 10);
 
         $task->set_custom_data([
-            'eventdata' => $eventdata
+            'eventdata' => $eventdata,
         ]);
 
-        \core\task\manager::queue_adhoc_task($task);   
+        \core\task\manager::queue_adhoc_task($task);
     }
 
     /**

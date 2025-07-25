@@ -65,7 +65,7 @@ class plagiarism_origai_plugin_config {
 
     /**
      *  Get default api base url
-     *  @return string
+     * @return string
      */
     public static function get_default_api_base_url() {
         return "https://integrations.originality.ai/api/v1";
@@ -73,7 +73,7 @@ class plagiarism_origai_plugin_config {
 
     /**
      * Get supported models
-     * 
+     *
      */
     public static function get_models() {
         return [

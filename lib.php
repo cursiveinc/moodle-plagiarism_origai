@@ -166,7 +166,6 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
             return '';
         }
 
-
         $responses = [];
 
         foreach ([
@@ -629,7 +628,7 @@ function plagiarism_origai_coursemodule_standard_elements($formwrapper, $mform) 
                 'plagiarism_origai_enable' => 0,
                 'plagiarism_origai_ai_model' => $admindefaultmodel,
                 'plagiarism_origai_automated_scan' => 0,
-                'plagiarism_origai_allow_student_report_access' => 0
+                'plagiarism_origai_allow_student_report_access' => 0,
             ]);
         }
     }
@@ -657,7 +656,7 @@ function plagiarism_origai_coursemodule_edit_post_actions($data, $course) {
         "plagiarism_origai_enable",
         "plagiarism_origai_ai_model",
         "plagiarism_origai_automated_scan",
-        "plagiarism_origai_allow_student_report_access"
+        "plagiarism_origai_allow_student_report_access",
     ];
     foreach ($cmproperties as $cmproperty) {
         plagiarism_origai_plugin_config::set_cm_config(
@@ -675,8 +674,7 @@ function plagiarism_origai_coursemodule_edit_post_actions($data, $course) {
  * @return void
  * @package plagiarism_origai
  */
-function dump($values)
-{
+function dump($values) {
     $arg = func_get_args();
     print(var_dump(...$arg) . PHP_EOL);
 }
@@ -687,8 +685,7 @@ function dump($values)
  * @return void
  * @package plagiarism_origai
  */
-function dd($values)
-{
+function dd($values) {
     $arg = func_get_args();
     exit(var_dump(...$arg) . PHP_EOL);
 }
