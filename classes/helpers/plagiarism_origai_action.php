@@ -36,7 +36,7 @@ class plagiarism_origai_action {
     /**
      * Queue new submission
      * @param array $submission
-     * @param object $record
+     * @param object|false $record
      * @throws \coding_exception
      * @throws \dml_exception
      */
@@ -81,33 +81,40 @@ class plagiarism_origai_action {
     /**
      * Create scan record
      * @param \stdClass $submission
-     * @return \stdClass
+     * @return \stdClass|false
      */
     public static function create_scan_record($submission) {
-        global $DB;
-        $table = "plagiarism_origai_plagscan";
-        $record = new \stdClass;
-        $record->scan_type = $submission['scan_type'];
-        $record->cmid = $submission['cmid'];
-        $record->userid = $submission['userid'];
-        $record->itemid = $submission['itemid'] ?? null;
-        $record->public_link = $submission['public_link'] ?? null;
-        $record->title = $submission['title'] ?? null;
-        $record->total_text_score = $submission['total_text_score'] ?? null;
-        $record->flesch_grade_level = $submission['flesch_grade_level'] ?? null;
-        $record->original_score = $submission['original_score'] ?? null;
-        $record->ai_score = $submission['ai_score'] ?? null;
-        $record->sources = $submission['sourcres'] ?? null;
-        $record->content = $submission['content'];
-        $record->error = $submission['error'] ?? null;
-        $record->status = $submission['status'];
-        $record->success = $submission['success'] ?? null;
-        $record->update_time = null;
-        $record->contenthash = $submission['contenthash'] ?? self::generate_content_hash($record->content);
+        try {
+            global $DB;
+            $table = "plagiarism_origai_plagscan";
+            $record = new \stdClass;
+            $record->scan_type = $submission['scan_type'];
+            $record->cmid = $submission['cmid'];
+            $record->userid = $submission['userid'];
+            $record->itemid = $submission['itemid'] ?? null;
+            $record->public_link = $submission['public_link'] ?? null;
+            $record->title = static::fix_encoding($submission['title'] ?? null);
+            $record->total_text_score = $submission['total_text_score'] ?? null;
+            $record->flesch_grade_level = $submission['flesch_grade_level'] ?? null;
+            $record->original_score = $submission['original_score'] ?? null;
+            $record->ai_score = $submission['ai_score'] ?? null;
+            $record->sources = $submission['sourcres'] ?? null;
+            $record->content = static::fix_encoding($submission['content']);
+            $record->error = $submission['error'] ?? null;
+            $record->status = $submission['status'];
+            $record->success = $submission['success'] ?? null;
+            $record->update_time = null;
+            $record->contenthash = $submission['contenthash'] ?? self::generate_content_hash($record->content);
 
-        $id = $DB->insert_record($table, $record);
-        $record->id = $id;
-        return $record;
+            $id = $DB->insert_record($table, $record);
+            $record->id = $id;
+            return $record;
+        } catch (\Throwable $th) {
+            debugging(
+                'Error creating scan record. Error: ' . $th->getMessage() . "\nStack Trace: " .$th->getTraceAsString()
+            );
+            return false;
+        }
     }
 
     /**
@@ -117,10 +124,17 @@ class plagiarism_origai_action {
      * @throws \dml_exception
      */
     public static function update_scan_record($record) {
-        global $DB;
-        $table = "plagiarism_origai_plagscan";
-        $DB->update_record($table, $record);
-        return $record;
+        try {
+            global $DB;
+            $table = "plagiarism_origai_plagscan";
+            $DB->update_record($table, $record);
+            return $record;
+        } catch (\Throwable $th) {
+            debugging(
+                'Error updating scan record. Error: ' . $th->getMessage() . "\nStack Trace: " .$th->getTraceAsString()
+            );
+            return false;
+        }
     }
 
     /**
@@ -204,6 +218,8 @@ class plagiarism_origai_action {
         // Normalize line endings
         $content = str_replace(["\r\n", "\r"], "\n", $content);
 
+        $content = static::fix_encoding($content);
+
         // Remove BOM if present
         if (substr($content, 0, 3) === "\xEF\xBB\xBF") {
             $content = substr($content, 3);
@@ -212,6 +228,20 @@ class plagiarism_origai_action {
         // Replace multiple spaces/newlines/tabs with a single space
         $content = preg_replace('/\s+/', ' ', $content);
         return trim($content);
+    }
+
+    /**
+     * @param ?string $str
+     * @return ?string
+     */
+    private static function fix_encoding($str) {
+        if (!$str) {
+            return $str;
+        }
+        if (!mb_detect_encoding($str, 'UTF-8', true)) {
+            return mb_convert_encoding($str, 'UTF-8', 'auto');
+        }
+        return $str;
     }
 
     /**

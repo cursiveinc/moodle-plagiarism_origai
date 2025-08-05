@@ -198,7 +198,9 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
                 ]);
             }
 
-            $responses[] = $record;
+            if ($record) {
+                $responses[] = $record;
+            }
         }
 
         // Skip result if scan isnt completed.
