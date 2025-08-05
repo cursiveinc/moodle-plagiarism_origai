@@ -35,9 +35,13 @@ require_sesskey();
 $cmid = required_param('cmid', PARAM_INT);
 $scanid = required_param('scanid', PARAM_INT);
 $modulename = required_param('coursemodule', PARAM_TEXT);
+$isasync = optional_param('isasync', 0, PARAM_INT);
 $returnurl = required_param("returnurl", PARAM_LOCALURL);
 
 global $DB, $PAGE;
+if(is_null($isasync)){
+    $isasync = 0;
+}
 
 $coursemodule = get_coursemodule_from_id($modulename, $cmid);
 $context = context_course::instance($coursemodule->course);
@@ -49,6 +53,14 @@ if(
     !$scan ||
     ($scan && $scan->status != plagiarism_origai_status_enums::PENDING)
 ){
+    if($isasync){
+        echo json_encode([
+            'status' => 'error',
+            'message' => get_string('scanfailed', 'plagiarism_origai'),
+            'renderhtml' => plagiarism_plugin_origai::build_scan_failed_component($scan, $modulename, $cmid, $returnurl, get_string('scanfailed', 'plagiarism_origai'))
+        ]);
+        exit;
+    }
     redirect($returnurl, get_string('scanfailed', 'plagiarism_origai'), null, \core\output\notification::NOTIFY_ERROR);
 }
 
@@ -56,10 +68,26 @@ require_capability('mod/assign:grade', $context);
 
 $enabled = plagiarism_origai_plugin_config::is_module_enabled($modulename, $cmid);
 if (!$enabled) {
+    if($isasync){
+        echo json_encode([
+            'status' => 'error',
+            'message' => get_string('pluginname', 'plagiarism_origai') . "not enabled/configured",
+            'renderhtml' => plagiarism_plugin_origai::build_scan_failed_component($scan, $modulename, $cmid, $returnurl, get_string('pluginname', 'plagiarism_origai') . "not enabled/configured")
+        ]);
+        exit;
+    }
     redirect($returnurl, get_string('pluginname', 'plagiarism_origai') . "not enabled/configured", null, \core\output\notification::NOTIFY_ERROR);
 }
 
 $scan->status = plagiarism_origai_status_enums::SCHEDULED;
 plagiarism_origai_action::update_scan_record($scan);
 
+if($isasync){
+    echo json_encode([
+        'status' => 'success',
+        'message' => get_string('scanqueuednotification', 'plagiarism_origai'),
+        'renderhtml' => plagiarism_plugin_origai::build_scan_processing_component($scan, $modulename)
+    ]);
+    exit;
+}
 redirect($returnurl, get_string('scanqueuednotification', 'plagiarism_origai'), null, \core\output\notification::NOTIFY_INFO);

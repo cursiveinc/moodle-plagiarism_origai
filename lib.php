@@ -224,6 +224,12 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
             'origai-logo-container'
         );
 
+        static $loadedJs;
+        if(!$loadedJs){
+            $PAGE->requires->js_call_amd('plagiarism_origai/scantrigger', 'init');
+            $loadedJs = true;
+        }
+
         // Generate links for both scan types.
         foreach ($responses as $response) {
             if ((!$isinstructor && $studentcanviewreport)) {
@@ -235,7 +241,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
             if ($response->status == plagiarism_origai_status_enums::PENDING) {
                 $iconclass = $response->scan_type == plagiarism_origai_scan_type_enums::AI
                     ? 'fa-brain' : 'fa-copy';
-                $output .= $this->build_scan_trigger([
+                $output .= static::build_scan_trigger([
                     'scanid' => $response->id,
                     'cmid' => $cmid,
                     'modulename' => $modulename,
@@ -245,6 +251,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
                             'runaicheck' : 'runplagiarismcheck',
                         'plagiarism_origai'
                     ),
+                    'scantype' => $response->scan_type
                 ]);
                 continue;
             }
@@ -254,7 +261,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
                 (!$response->success && !empty($response->success)) ||
                 $response->status == plagiarism_origai_status_enums::FAILED
             ) {
-                $output .= $this->build_scan_failed_component($response, $modulename, $cmid);
+                $output .= static::build_scan_failed_component($response, $modulename, $cmid);
                 continue;
             }
 
@@ -263,12 +270,12 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
                 $response->status == plagiarism_origai_status_enums::PROCESSING ||
                 $response->status == plagiarism_origai_status_enums::SCHEDULED
             ) {
-                $output .= $this->build_scan_processing_component($response);
+                $output .= static::build_scan_processing_component($response, $modulename);
                 continue;
             }
 
             if ($response->success) {
-                $output .= $this->build_scan_successful_component(
+                $output .= static::build_scan_successful_component(
                     $response,
                     $cmid,
                     $itemid,
@@ -287,12 +294,13 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
      * @param $options
      * @return string
      */
-    private function build_scan_trigger($options) {
+    public static function build_scan_trigger($options) {
         $returnurl = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
 
         $fields = [
             'scanid'     => $options['scanid'],
             'cmid' => $options['cmid'],
+            'scantype' => $options['scantype'],
             'coursemodule' => $options['modulename'],
             'sesskey'    => sesskey(),
             'returnurl'  => $returnurl,
@@ -310,6 +318,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
             [
                 'href'  => $url,
                 'class' => 'origai-scan-trigger origai-action-button my-2 mr-2',
+                'data-plagiarism_origa-trigger-scanid' => $options['scanid']
             ]
         );
 
@@ -323,15 +332,17 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
      * @param int $cmid
      * @return string
      */
-    private function build_scan_failed_component($response, $modulename, $cmid) {
-        $returnurl = (isset($_SERVER['HTTPS']) ?
+    public static function build_scan_failed_component($response, $modulename, $cmid, $returnurl = null, $failmsg = null) {
+        if(!$returnurl){
+            $returnurl = (isset($_SERVER['HTTPS']) ?
             "https" : "http") . "://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
+        }
         $output = "";
 
         $tooltiptext = !empty($response->error) ?
             s($response->error) : get_string('defaultscanerror', 'plagiarism_origai');
         $retrytext = get_string('retryscan', 'plagiarism_origai');
-        $scanfailedtext = get_string('scanfailed', 'plagiarism_origai');
+        $scanfailedtext = $failmsg ?? get_string('scanfailed', 'plagiarism_origai');
         $output = html_writer::start_div('origai-section'); // section
         if ($response->scan_type == plagiarism_origai_scan_type_enums::PLAGIARISM) {
             $output .= html_writer::tag('h3', get_string('plagresulttitle', 'plagiarism_origai'), ['class' => 'origai-section-title']);
@@ -379,7 +390,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
      * @param object $coursemodule
      * @return string
      */
-    private function build_scan_successful_component($response, $cmid, $itemid, $userid, $coursemodule) {
+    public static function build_scan_successful_component($response, $cmid, $itemid, $userid, $coursemodule) {
         $output = "";
 
         $reporturl = new moodle_url("/plagiarism/origai/plagiarism_origai_report.php" . "?" . http_build_query([
@@ -392,7 +403,9 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
         ]));
         if ($response->scan_type == plagiarism_origai_scan_type_enums::PLAGIARISM) {
             $thresholdcolor = plagiarism_origai_action::get_plag_threshold_color($response->total_text_score);
-            $output .= html_writer::start_div('origai-section origai-section-' . $thresholdcolor);
+            $output .= html_writer::start_div('origai-section origai-section-' . $thresholdcolor, [
+                'class' => 'mr-3'
+            ]);
             $output .= html_writer::tag(
                 'h3',
                 get_string('plagresulttitle', 'plagiarism_origai'),
@@ -409,7 +422,9 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
                 $response->original_score
             );
             $thresholdcolor = plagiarism_origai_action::get_ai_threshold_color($aiclassification, $confidencescore);
-            $output .= html_writer::start_div('origai-section origai-section-' . $thresholdcolor);
+            $output .= html_writer::start_div('origai-section origai-section-' . $thresholdcolor, [
+                'class' => 'mr-3'
+            ]);
             $classifytext = $aiclassification == "AI" ?
                 get_string('aipercentage', 'plagiarism_origai', $confidencescore . '%') :
                 get_string('humanpercentage', 'plagiarism_origai', $confidencescore . '%');
@@ -430,9 +445,10 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
     /**
      * Generate output html for scan processing.
      * @param object $response
+     * @param string $modulename
      * @return string
      */
-    private function build_scan_processing_component($response) {
+    public static function build_scan_processing_component($response, $modulename) {
         global $OUTPUT;
         $output = '';
         // Create spinner icon.
@@ -446,30 +462,29 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
             get_string('scaninprogress', 'plagiarism_origai') :
             get_string('scanqueued', 'plagiarism_origai');
 
+        $output .= html_writer::start_div('origai-section', [
+            'data-plagiarism_origa-poll-scanid' => $response->id,
+            'data-plagiarism_origa-cmid' => $response->cmid,
+            'data-plagiarism_origa-coursemodule' => $modulename,
+            'data-plagiarism_origa-sesskey' => sesskey()
+        ]);
         if ($response->scan_type == plagiarism_origai_scan_type_enums::PLAGIARISM) {
-            $output .= html_writer::start_div('origai-section');
             $output .= html_writer::tag(
                 'h3',
                 get_string('plagresulttitle', 'plagiarism_origai'),
                 ['class' => 'origai-section-title']
             );
-            $output .= html_writer::start_div('d-flex align-items-center');
-            $output .= $spinner . $loadingstring;
-            $output .= html_writer::end_div(); // d-flex.
-            $output .= html_writer::end_div(); // origai-section.
-
         } else if ($response->scan_type == plagiarism_origai_scan_type_enums::AI) {
-            $output .= html_writer::start_div('origai-section');
             $output .= html_writer::tag(
                 'h3',
                 get_string('airesulttitle', 'plagiarism_origai'),
                 ['class' => 'origai-section-title']
             );
-            $output .= html_writer::start_div('d-flex align-items-center');
-            $output .= $spinner . $loadingstring;
-            $output .= html_writer::end_div(); // d-flex.
-            $output .= html_writer::end_div(); // origai-section.
         }
+        $output .= html_writer::start_div('d-flex align-items-center');
+        $output .= $spinner . $loadingstring;
+        $output .= html_writer::end_div(); // d-flex.
+        $output .= html_writer::end_div(); // origai-section.
         return $output;
     }
 
