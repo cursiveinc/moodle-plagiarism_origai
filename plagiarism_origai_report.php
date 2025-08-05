@@ -139,7 +139,7 @@ if (!$moduleenabled) {
                     'allowfullscreen' => 'true',
                     'loading' => 'lazy',
                     'title' => get_string('reportpagetitle', 'plagiarism_origai'),
-                    'sandbox' => 'allow-scripts allow-same-origin',
+                    'sandbox' => 'allow-scripts allow-same-origin allow-downloads',
                 ]);
 
                 $report .= html_writer::end_div(); // iframe-wrapper
