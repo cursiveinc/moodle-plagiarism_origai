@@ -90,3 +90,4 @@ $string['totalmatches'] = "Total Matches: ";
 $string['updateerror'] = 'Error while trying to update records in database';
 $string['useorigai'] = 'Enable OriginalityAI';
 $string['website'] = "Website: ";
+$string['apiurlchanged'] = 'The API URL must be updated to {$a} for scans to run smoothly.';

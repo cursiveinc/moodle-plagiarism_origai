@@ -122,9 +122,13 @@ class plagiarism_setup_form extends moodleform {
      */
     public function init_form_data() {
         $config = plagiarism_origai_plugin_config::admin_config();
+        $default_api_base_url = plagiarism_origai_plugin_config::get_default_api_base_url();
+        if (isset($config['apiurl']) && $config['apiurl'] != $default_api_base_url) {
+            \core\notification::warning(get_string('apiurlchanged', 'plagiarism_origai', $default_api_base_url));
+        }
 
         if (!isset($config['apiurl']) || empty($config['apiurl'])) {
-            $config['apiurl'] = plagiarism_origai_plugin_config::get_default_api_base_url();
+            $config['apiurl'] = $default_api_base_url;
         }
 
         if (
