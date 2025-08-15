@@ -77,7 +77,7 @@ class plagiarism_origai_plugin_config {
             $maturity = $plugin->maturity;
         }
 
-        if ($maturity !== null && $maturity < MATURITY_STABLE) {
+        if ($maturity !== null && $maturity < MATURITY_RC) {
             return "https://integrationsqa.originality.ai/api/v1";
         }
         return "https://integrations.originality.ai/api/v1";
