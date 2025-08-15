@@ -112,6 +112,11 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
                 $linkarray["cmid"]
             );
         }
+        static $course;
+        if (empty($course)) {
+            $course = $DB->get_record('course', ['id' => $coursemodule->course], 'shortname');
+        }
+
 
         // Get origai plugin admin config.
         static $adminconfig;
@@ -186,13 +191,18 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
                     plagiarism_origai_action::update_scan_record($record);
                 }
             } else {
+                $title = plagiarism_origai_action::generate_scan_title(
+                    $course->shortname,
+                    $content,
+                    $coursemodule->name
+                );
                 $record = plagiarism_origai_action::create_scan_record([
                     'status'      => plagiarism_origai_status_enums::PENDING,
                     'scan_type'   => $scantype,
                     'cmid'        => $cmid,
                     'userid'      => $userid,
                     'itemid'      => $itemid,
-                    'title'       => $title ?? substr(html_to_text($content, 0, false), 0, 255),
+                    'title'       => $title,
                     'content'     => $content,
                     'contenthash' => plagiarism_origai_action::generate_content_hash($content),
                 ]);
