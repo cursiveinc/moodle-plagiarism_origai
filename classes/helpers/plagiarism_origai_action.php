@@ -383,4 +383,30 @@ class plagiarism_origai_action {
         $confidencescore = intval(round($confidencescore, 2) * 100);
         return [$aiclassification, $confidencescore];
     }
+
+    /**
+     * Generate scan title
+     * @param string $content
+     * @param string|null $courseshortname
+     * @param string|null $activityname
+     * @param string|null $studentidentifier
+     * @return string
+     */
+    public static function generate_scan_title(
+        $courseshortname,
+        $content = null,
+        $activityname = null,
+        $studentidentifier = null
+    )
+    {
+        if ($activityname) {
+            return $courseshortname . ":" . substr($activityname, 0, 150);
+        }
+
+        if ($content) {
+            return $courseshortname . ":" . substr(html_to_text($content, 0, false), 0, 150) . "...";
+        }
+        
+        return $courseshortname;
+    }
 }

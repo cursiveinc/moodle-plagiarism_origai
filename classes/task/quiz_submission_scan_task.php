@@ -45,6 +45,7 @@ class quiz_submission_scan_task extends \core\task\adhoc_task {
 
             // Get course module.
             $coursemodule = get_coursemodule_from_instance('quiz', $eventdata['other']['quizid']);
+            $course = $DB->get_record('course', ['id' => $coursemodule->course], 'shortname');
 
             // Stop event if the course module is not fonund.
             if (!$coursemodule) {
@@ -67,10 +68,6 @@ class quiz_submission_scan_task extends \core\task\adhoc_task {
             $quiz = $DB->get_record('quiz', [
                 'id' => $quizattempt->quiz,
             ], 'name');
-            $title = null;
-            if ($quiz) {
-                $title = substr($quiz->name, 0, 255);
-            }
 
             $attempt = quiz_attempt::create($eventdata['objectid']);
 
@@ -89,13 +86,18 @@ class quiz_submission_scan_task extends \core\task\adhoc_task {
                         ];
 
                         if (!empty($content)) {
+                            $title = plagiarism_origai_action::generate_scan_title(
+                                $course->shortname,
+                                $content,   
+                                $quiz->name
+                            );
                             foreach ($scantypes as $scantype) {
                                 plagiarism_origai_action::queue_new_submission([
                                     'scan_type' => $scantype,
                                     'cmid' => $coursemodule->id,
                                     'userid' => $userid,
                                     'itemid' => $eventdata['objectid'],
-                                    'title' => $title ?? substr(html_to_text($content, 0, false), 0, 255),
+                                    'title' => $title,
                                     'content' => $content,
                                     'contenthash' => plagiarism_origai_action::generate_content_hash($content),
                                 ]);
@@ -104,6 +106,11 @@ class quiz_submission_scan_task extends \core\task\adhoc_task {
                         foreach ($attachments as $pathnamehash) {
                             $textextractor = plagiarism_origai_text_extractor::make(null, $pathnamehash);
                             $content = $textextractor->extract();
+                            $title = plagiarism_origai_action::generate_scan_title(
+                                $course->shortname,
+                                $content,
+                                $quiz->name
+                            );
                             if (!$content) {
                                 if ($textextractor->get_stored_file()->get_filename() === '.') {
                                     continue;
@@ -114,7 +121,7 @@ class quiz_submission_scan_task extends \core\task\adhoc_task {
                                         'cmid' => $coursemodule->id,
                                         'userid' => $userid,
                                         'itemid' => $eventdata['objectid'],
-                                        'title' => $title ?? substr(html_to_text($content, 0, false), 0, 255),
+                                        'title' => $title,
                                         'content' => null,
                                         'contenthash' => null,
                                         'error' => 'Content is invalid or unsupported',
@@ -130,7 +137,7 @@ class quiz_submission_scan_task extends \core\task\adhoc_task {
                                     'cmid' => $coursemodule->id,
                                     'userid' => $userid,
                                     'itemid' => $eventdata['objectid'],
-                                    'title' => $title ?? substr(html_to_text($content, 0, false), 0, 255),
+                                    'title' => $title,
                                     'content' => $content,
                                     'contenthash' => plagiarism_origai_action::generate_content_hash($content),
                                 ]);

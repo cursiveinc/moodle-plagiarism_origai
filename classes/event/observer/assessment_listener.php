@@ -50,6 +50,7 @@ class assessment_listener {
 
         // Get course module.
         $coursemodule = static::get_coursemodule($eventdata, 'assign');
+        $course = static::get_course($coursemodule->course);
 
         // Stop event if the course module is not found.
         if (!$coursemodule) {
@@ -98,10 +99,6 @@ class assessment_listener {
         $assignment = $DB->get_record('assign', [
             'id' => $submission->assignment,
         ], 'name');
-        $title = null;
-        if ($assignment) {
-            $title = substr($assignment->name, 0, 255);
-        }
 
         try {
             $userid = empty($eventdata['relateduserid']) ?
@@ -114,12 +111,17 @@ class assessment_listener {
             if (!empty($eventdata['other']['content'])) {
                 foreach ($scantypes as $scantype) {
                     $content = $eventdata['other']['content'];
+                    $title = plagiarism_origai_action::generate_scan_title(
+                        $course->shortname,
+                        $content,   
+                        $assignment->name
+                    );
                     plagiarism_origai_action::queue_new_submission([
                         'scan_type' => $scantype,
                         'cmid' => $coursemodule->id,
                         'userid' => $userid,
                         'itemid' => $eventdata['objectid'],
-                        'title' => $title ?? substr(html_to_text($content, 0, false), 0, 255),
+                        'title' => $title,
                         'content' => $content,
                         'contenthash' => plagiarism_origai_action::generate_content_hash($content),
                     ]);
@@ -128,6 +130,11 @@ class assessment_listener {
             foreach ($eventdata['other']['pathnamehash'] as $pathnamehash) {
                 $textextractor = plagiarism_origai_text_extractor::make(null, $pathnamehash);
                 $content = $textextractor->extract();
+                $title = plagiarism_origai_action::generate_scan_title(
+                    $course->shortname,
+                    $content,   
+                    $assignment->name
+                );
                 if (!$content) {
                     if ($textextractor->get_stored_file()->get_filename() === '.') {
                         continue;
@@ -138,7 +145,7 @@ class assessment_listener {
                             'cmid' => $coursemodule->id,
                             'userid' => $userid,
                             'itemid' => $eventdata['objectid'],
-                            'title' => $title ?? substr(html_to_text($content, 0, false), 0, 255),
+                            'title' => $title,
                             'content' => null,
                             'contenthash' => null,
                             'error' => 'Content is invalid or unsupported',
@@ -154,7 +161,7 @@ class assessment_listener {
                         'cmid' => $coursemodule->id,
                         'userid' => $userid,
                         'itemid' => $eventdata['objectid'],
-                        'title' => $title ?? substr(html_to_text($content, 0, false), 0, 255),
+                        'title' => $title,
                         'content' => $content,
                         'contenthash' => plagiarism_origai_action::generate_content_hash($content),
                     ]);
@@ -193,6 +200,7 @@ class assessment_listener {
         $eventdata = $event->get_data();
         // Get course module.
         $coursemodule = static::get_coursemodule($eventdata, 'forum');
+        $course = static::get_course($coursemodule->course);
 
         // Stop event if the course module is not found.
         if (!$coursemodule) {
@@ -212,11 +220,6 @@ class assessment_listener {
 
         $forumpost = $event->get_record_snapshot('forum_posts', $eventdata['objectid']);
 
-        $title = null;
-        if ($forumpost) {
-            $title = substr($forumpost->subject, 0, 255);
-        }
-
         try {
             $userid = $eventdata['userid'];
             $scantypes = [
@@ -227,12 +230,17 @@ class assessment_listener {
             if (!empty($eventdata['other']['content'])) {
                 foreach ($scantypes as $scantype) {
                     $content = $eventdata['other']['content'];
+                    $title = plagiarism_origai_action::generate_scan_title(
+                        $course->shortname,
+                        $content,   
+                        $forumpost->subject
+                    );
                     plagiarism_origai_action::queue_new_submission([
                         'scan_type' => $scantype,
                         'cmid' => $coursemodule->id,
                         'userid' => $userid,
                         'itemid' => $eventdata['objectid'],
-                        'title' => $title ?? substr(html_to_text($content, 0, false), 0, 255),
+                        'title' => $title,
                         'content' => $content,
                         'contenthash' => plagiarism_origai_action::generate_content_hash($content),
                     ]);
@@ -241,6 +249,11 @@ class assessment_listener {
             foreach ($eventdata['other']['pathnamehashes'] as $pathnamehash) {
                 $textextractor = plagiarism_origai_text_extractor::make(null, $pathnamehash);
                 $content = $textextractor->extract();
+                $title = plagiarism_origai_action::generate_scan_title(
+                    $course->shortname,
+                    $content,   
+                    $forumpost->subject
+                );
                 if (!$content) {
                     if ($textextractor->get_stored_file()->get_filename() === '.') {
                         continue;
@@ -251,7 +264,7 @@ class assessment_listener {
                             'cmid' => $coursemodule->id,
                             'userid' => $userid,
                             'itemid' => $eventdata['objectid'],
-                            'title' => $title ?? substr(html_to_text($content, 0, false), 0, 255),
+                            'title' => $title,
                             'content' => null,
                             'contenthash' => null,
                             'error' => 'Content is invalid or unsupported',
@@ -291,5 +304,11 @@ class assessment_listener {
         } else {
             return get_coursemodule_from_id($modulename, $data['contextinstanceid']);
         }
+    }
+
+    private static function get_course($cid)
+    {
+        global $DB;
+        return $DB->get_record('course', ['id' => $cid], 'shortname');
     }
 }

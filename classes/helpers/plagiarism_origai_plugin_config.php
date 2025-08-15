@@ -68,10 +68,16 @@ class plagiarism_origai_plugin_config {
      * @return string
      */
     public static function get_default_api_base_url() {
-        $pluginmananger = \core_plugin_manager::instance();
-        $plugininfo = $pluginmananger->get_plugin_info('plagiarism_origai');
+        global $CFG;
+        $versionfile = $CFG->dirroot . '/plagiarism/origai/version.php';
+        $maturity = null;
+        $plugin = new \stdClass;
+        include($versionfile); 
+        if (isset($plugin->maturity)) {
+            $maturity = $plugin->maturity;
+        }
 
-        if ($plugininfo && $plugininfo->maturity < MATURITY_STABLE) {
+        if ($maturity !== null && $maturity < MATURITY_STABLE) {
             return "https://integrationsqa.originality.ai/api/v1";
         }
         return "https://integrations.originality.ai/api/v1";
