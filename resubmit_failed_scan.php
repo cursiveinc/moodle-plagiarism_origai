@@ -15,52 +15,40 @@
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
  /**
-  * Adhoc scan
+  * Resumit failed scans
   * @package   plagiarism_origai
   * @category  plagiarism
   * @copyright Originality.ai, https://originality.ai
   * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
   */
-require_once ('../../config.php');
-require_once ($CFG->libdir . '/filelib.php');
-require_once (__DIR__ .'/lib.php');
+require_once('../../config.php');
+require_once($CFG->libdir . '/filelib.php');
+require_once(__DIR__ . '/lib.php');
 
 use plagiarism_origai\helpers\plagiarism_origai_plugin_config;
 use plagiarism_origai\helpers\plagiarism_origai_action;
 use plagiarism_origai\enums\plagiarism_origai_status_enums;
+use plagiarism_origai\enums\plagiarism_origai_retry_mode_enums;
 
 require_login();
 require_sesskey();
 
+$scanid = null;
+$mode = required_param('mode', PARAM_TEXT);
+if ($mode == plagiarism_origai_retry_mode_enums::SINGLE) {
+    $scanid = required_param('scanid', PARAM_INT);
+}
+
 $cmid = required_param('cmid', PARAM_INT);
-$scanid = required_param('scanid', PARAM_INT);
 $modulename = required_param('coursemodule', PARAM_TEXT);
-$isasync = optional_param('isasync', 0, PARAM_INT);
 $returnurl = required_param("returnurl", PARAM_LOCALURL);
 
 global $DB, $PAGE;
-if(is_null($isasync)){
-    $isasync = 0;
-}
 
 $coursemodule = get_coursemodule_from_id($modulename, $cmid);
 $context = context_course::instance($coursemodule->course);
 
-$scan = plagiarism_origai_action::get_scan_record_by_id($scanid);
-
-if(
-    !$context ||
-    !$scan ||
-    ($scan && $scan->status != plagiarism_origai_status_enums::PENDING)
-){
-    if($isasync){
-        echo json_encode([
-            'status' => 'error',
-            'message' => get_string('scanfailed', 'plagiarism_origai'),
-            'renderhtml' => plagiarism_plugin_origai::build_scan_failed_component($scan, $modulename, $cmid, $returnurl, get_string('scanfailed', 'plagiarism_origai'))
-        ]);
-        exit;
-    }
+if (!$context) {
     redirect($returnurl, get_string('scanfailed', 'plagiarism_origai'), null, \core\output\notification::NOTIFY_ERROR);
 }
 
@@ -68,26 +56,28 @@ require_capability('mod/assign:grade', $context);
 
 $enabled = plagiarism_origai_plugin_config::is_module_enabled($modulename, $cmid);
 if (!$enabled) {
-    if($isasync){
-        echo json_encode([
-            'status' => 'error',
-            'message' => get_string('pluginname', 'plagiarism_origai') . "not enabled/configured",
-            'renderhtml' => plagiarism_plugin_origai::build_scan_failed_component($scan, $modulename, $cmid, $returnurl, get_string('pluginname', 'plagiarism_origai') . "not enabled/configured")
-        ]);
-        exit;
-    }
     redirect($returnurl, get_string('pluginname', 'plagiarism_origai') . "not enabled/configured", null, \core\output\notification::NOTIFY_ERROR);
 }
-
-$scan->status = plagiarism_origai_status_enums::SCHEDULED;
-plagiarism_origai_action::update_scan_record($scan);
-
-if($isasync){
-    echo json_encode([
-        'status' => 'success',
-        'message' => get_string('scanqueuednotification', 'plagiarism_origai'),
-        'renderhtml' => plagiarism_plugin_origai::build_scan_processing_component($scan, $modulename)
-    ]);
-    exit;
+switch ($mode) {
+    case plagiarism_origai_retry_mode_enums::SINGLE:
+        resubmit_single_failed_scan($scanid, $returnurl);
+        break;
+    default:
+        throw new \core\exception\invalid_parameter_exception("param(mode) is invalid");
 }
-redirect($returnurl, get_string('scanqueuednotification', 'plagiarism_origai'), null, \core\output\notification::NOTIFY_INFO);
+
+
+function resubmit_single_failed_scan($scanid, $returnurl) {
+    $scan = plagiarism_origai_action::get_scan_record_by_id($scanid);
+    if (
+        !$scan ||
+        ($scan && $scan->status != plagiarism_origai_status_enums::FAILED)
+    ) {
+        redirect($returnurl, get_string('scanfailed', 'plagiarism_origai'), null, \core\output\notification::NOTIFY_ERROR);
+    }
+    $scan->status = plagiarism_origai_status_enums::SCHEDULED;
+    $scan->error = null;
+    $scan->success = null;
+    plagiarism_origai_action::update_scan_record($scan);
+    redirect($returnurl, get_string('scanqueuednotification', 'plagiarism_origai'), null, \core\output\notification::NOTIFY_INFO);
+}

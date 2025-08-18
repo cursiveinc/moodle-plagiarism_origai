@@ -1,0 +1,101 @@
+/* plagiarism/origai/styles.css */
+.origai-report-container {
+    /* font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    max-width: 320px;
+    margin: 1rem auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px; */
+    overflow: hidden;
+}
+
+.origai-logo-container {
+    /* text-align: center;
+    padding: 1rem; */
+    background: transparent;
+}
+
+.origai-logo {
+    width: 100px;
+}
+
+.origai-section {
+    display: inline-block;
+    padding: 1rem;
+    border-left: 2px solid;
+    border-radius: 7px;
+    margin: 0.5rem 0;
+    background-color: #f5f5f5;
+    width: 100%;
+    max-width: 200px;
+}
+
+.origai-section-title {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.775rem;
+    font-weight: 600;
+    color: #616161;
+    text-transform: uppercase;
+}
+
+.origai-percentage {
+    font-size: 0.775rem;
+    font-weight: 700;
+}
+
+.origai-action-button {
+    display: inline-block;
+    background-color: #66559B;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    text-decoration: none;
+    font-size: 0.875rem;
+    transition: background-color 0.2s;
+    border: none;
+    outline: none;
+    cursor: pointer;
+}
+
+.origai-action-button:hover {
+    background-color: rgba(113, 100, 163, 1);
+}
+
+.origai-getscan-button {
+    display: inline-block;
+    margin: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #f5f5f5;
+    border-radius: 4px;
+    text-decoration: none;
+    color: #333;
+}
+
+.origai-dot {
+    width: 0.75rem;
+    height: 0.75rem;
+    border-radius: 50%;
+}
+
+.origai-section.origai-section-green {
+    border-color: #10b981;
+}
+
+.origai-section.origai-section-orange {
+    border-color: #f59e0b;
+}
+
+.origai-section.origai-section-red {
+    border-color: #ff0202;
+}
+
+.origai-section-green .origai-dot{
+    background-color: #10b981;
+}
+
+.origai-section-orange .origai-dot {
+    background-color: #f59e0b;
+}
+
+.origai-section-red .origai-dot {
+    background-color: #ff0202;
+}

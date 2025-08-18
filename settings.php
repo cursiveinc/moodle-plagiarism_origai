@@ -14,35 +14,42 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-    require_once(dirname(dirname(__FILE__)) . '/../config.php');
-    require_once($CFG->libdir.'/adminlib.php');
-    require_once($CFG->libdir.'/plagiarismlib.php');
-    require_once($CFG->dirroot.'/plagiarism/origai/lib.php');
-    require_once($CFG->dirroot.'/plagiarism/origai/plagiarism_form.php');
+/**
+ * Settings page for plagiarism_origai plugin
+ * @package   plagiarism_origai
+ * @category  plagiarism
+ * @copyright Originality.ai, https://originality.ai
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
-    require_login();
-    admin_externalpage_setup('plagiarismorigai');
+require_once(dirname(dirname(__FILE__)) . '/../config.php');
+require_once($CFG->libdir.'/adminlib.php');
+require_once($CFG->libdir.'/plagiarismlib.php');
+require_once($CFG->dirroot.'/plagiarism/origai/lib.php');
+require_once($CFG->dirroot.'/plagiarism/origai/plagiarism_form.php');
 
-    $context = context_system::instance();
+require_login();
+admin_externalpage_setup('plagiarismorigai');
 
-    require_capability('moodle/site:config', $context, $USER->id, true, "nopermissions");
+$context = context_system::instance();
 
-    require_once('plagiarism_form.php');
-    $mform = new plagiarism_setup_form();
-    $plagiarismplugin = new plagiarism_plugin_origai();
+require_capability('moodle/site:config', $context, $USER->id, true, "nopermissions");
 
-    if ($mform->is_cancelled()) {
-        redirect(new moodle_url('/admin/category.php?category=plagiarism'));
-    }
+$mform = new plagiarism_setup_form();
+$plagiarismplugin = new plagiarism_plugin_origai();
 
-    echo $OUTPUT->header();
+if ($mform->is_cancelled()) {
+    redirect(new moodle_url('/admin/category.php?category=plagiarism'));
+}
 
-    if (($data = $mform->get_data()) && confirm_sesskey()) {
-        $mform->save($data);
-        echo $OUTPUT->notification(get_string('adminconfigsavesuccess', 'plagiarism_origai'), 'notifysuccess');
-    }
-    
-    $mform->init_form_data();
+echo $OUTPUT->header();
 
-    $mform->display();
-    echo $OUTPUT->footer();
+if (($data = $mform->get_data()) && confirm_sesskey()) {
+    $mform->save($data);
+    echo $OUTPUT->notification(get_string('adminconfigsavesuccess', 'plagiarism_origai'), 'notifysuccess');
+}
+
+$mform->init_form_data();
+
+$mform->display();
+echo $OUTPUT->footer();
