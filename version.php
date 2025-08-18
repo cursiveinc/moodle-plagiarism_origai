@@ -31,5 +31,5 @@ $plugin->supported = [
     500,
 ];
 $plugin->release   = '2.0.0';
-$plugin->maturity  = MATURITY_RC;
+$plugin->maturity  = MATURITY_STABLE;
 $plugin->cron      = 0;
