@@ -121,6 +121,7 @@ class plagiarism_setup_form extends moodleform {
      * @return void
      */
     public function init_form_data() {
+        plagiarism_origai_plugin_config::clear_admin_config_cache();
         $config = plagiarism_origai_plugin_config::admin_config();
         $default_api_base_url = plagiarism_origai_plugin_config::get_default_api_base_url();
         if (isset($config['apiurl']) && $config['apiurl'] != $default_api_base_url) {
