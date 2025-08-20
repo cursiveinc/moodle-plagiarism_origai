@@ -24,6 +24,8 @@
 
 namespace plagiarism_origai\helpers;
 
+use core_cache\cache;
+
 require_once($CFG->dirroot . '/plagiarism/origai/lib.php');
 
 
@@ -193,5 +195,14 @@ class plagiarism_origai_plugin_config {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Clear the admin config cache
+     * @return void
+     */
+    public static function clear_admin_config_cache() {
+        $cache = cache::make('core', 'config');
+        $cache->delete('plagiarism_origai');
     }
 }
