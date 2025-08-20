@@ -1,5 +1,15 @@
 # Changelog
 
+## [v2.0.1](https://github.com/cursiveinc/moodle-plagiarism_origai/tree/v2.0.1) (2025-08-20)
+
+[Full Changelog](https://github.com/cursiveinc/moodle-plagiarism_origai/compare/v2.0.0...v2.0.1)
+
+**Merged pull requests:**
+
+- chore: bump version for patch [\#15](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/15) ([emlycool](https://github.com/emlycool))
+- fix: invalidate cache of outdated credentials [\#14](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/14) ([emlycool](https://github.com/emlycool))
+- Update changelog [\#13](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/13) ([github-actions[bot]](https://github.com/apps/github-actions))
+
 ## [v2.0.0](https://github.com/cursiveinc/moodle-plagiarism_origai/tree/v2.0.0) (2025-08-18)
 
 [Full Changelog](https://github.com/cursiveinc/moodle-plagiarism_origai/compare/v1.1.5...v2.0.0)
