@@ -397,8 +397,7 @@ class plagiarism_origai_action {
         $content = null,
         $activityname = null,
         $studentidentifier = null
-    )
-    {
+    ) {
         if ($activityname) {
             return $courseshortname . ":" . substr($activityname, 0, 150);
         }
@@ -406,7 +405,7 @@ class plagiarism_origai_action {
         if ($content) {
             return $courseshortname . ":" . substr(html_to_text($content, 0, false), 0, 150) . "...";
         }
-        
+
         return $courseshortname;
     }
 }

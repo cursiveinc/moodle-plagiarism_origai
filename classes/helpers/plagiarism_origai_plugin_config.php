@@ -74,7 +74,7 @@ class plagiarism_origai_plugin_config {
         $versionfile = $CFG->dirroot . '/plagiarism/origai/version.php';
         $maturity = null;
         $plugin = new \stdClass;
-        include($versionfile); 
+        include($versionfile);
         if (isset($plugin->maturity)) {
             $maturity = $plugin->maturity;
         }

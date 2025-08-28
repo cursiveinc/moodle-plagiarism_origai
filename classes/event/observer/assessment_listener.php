@@ -113,7 +113,7 @@ class assessment_listener {
                     $content = $eventdata['other']['content'];
                     $title = plagiarism_origai_action::generate_scan_title(
                         $course->shortname,
-                        $content,   
+                        $content,
                         $assignment->name
                     );
                     plagiarism_origai_action::queue_new_submission([
@@ -132,7 +132,7 @@ class assessment_listener {
                 $content = $textextractor->extract();
                 $title = plagiarism_origai_action::generate_scan_title(
                     $course->shortname,
-                    $content,   
+                    $content,
                     $assignment->name
                 );
                 if (!$content) {
@@ -232,7 +232,7 @@ class assessment_listener {
                     $content = $eventdata['other']['content'];
                     $title = plagiarism_origai_action::generate_scan_title(
                         $course->shortname,
-                        $content,   
+                        $content,
                         $forumpost->subject
                     );
                     plagiarism_origai_action::queue_new_submission([
@@ -251,7 +251,7 @@ class assessment_listener {
                 $content = $textextractor->extract();
                 $title = plagiarism_origai_action::generate_scan_title(
                     $course->shortname,
-                    $content,   
+                    $content,
                     $forumpost->subject
                 );
                 if (!$content) {
@@ -306,8 +306,7 @@ class assessment_listener {
         }
     }
 
-    private static function get_course($cid)
-    {
+    private static function get_course($cid) {
         global $DB;
         return $DB->get_record('course', ['id' => $cid], 'shortname');
     }
