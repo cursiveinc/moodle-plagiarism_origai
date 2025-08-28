@@ -88,7 +88,7 @@ class quiz_submission_scan_task extends \core\task\adhoc_task {
                         if (!empty($content)) {
                             $title = plagiarism_origai_action::generate_scan_title(
                                 $course->shortname,
-                                $content,   
+                                $content,
                                 $quiz->name
                             );
                             foreach ($scantypes as $scantype) {

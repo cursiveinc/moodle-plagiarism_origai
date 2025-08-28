@@ -57,7 +57,7 @@ if(
         echo json_encode([
             'status' => 'error',
             'message' => get_string('scanfailed', 'plagiarism_origai'),
-            'renderhtml' => plagiarism_plugin_origai::build_scan_failed_component($scan, $modulename, $cmid, $returnurl, get_string('scanfailed', 'plagiarism_origai'))
+            'renderhtml' => plagiarism_plugin_origai::build_scan_failed_component($scan, $modulename, $cmid, $returnurl, get_string('scanfailed', 'plagiarism_origai')),
         ]);
         exit;
     }
@@ -72,7 +72,7 @@ if (!$enabled) {
         echo json_encode([
             'status' => 'error',
             'message' => get_string('pluginname', 'plagiarism_origai') . "not enabled/configured",
-            'renderhtml' => plagiarism_plugin_origai::build_scan_failed_component($scan, $modulename, $cmid, $returnurl, get_string('pluginname', 'plagiarism_origai') . "not enabled/configured")
+            'renderhtml' => plagiarism_plugin_origai::build_scan_failed_component($scan, $modulename, $cmid, $returnurl, get_string('pluginname', 'plagiarism_origai') . "not enabled/configured"),
         ]);
         exit;
     }
@@ -86,7 +86,7 @@ if($isasync){
     echo json_encode([
         'status' => 'success',
         'message' => get_string('scanqueuednotification', 'plagiarism_origai'),
-        'renderhtml' => plagiarism_plugin_origai::build_scan_processing_component($scan, $modulename)
+        'renderhtml' => plagiarism_plugin_origai::build_scan_processing_component($scan, $modulename),
     ]);
     exit;
 }
