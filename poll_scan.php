@@ -47,7 +47,7 @@ if (in_array(
     echo json_encode([
         'status' => 'processing',
         'message' => 'Scan is already in progress',
-        'renderhtml' => null
+        'renderhtml' => null,
     ]);
     die;
 }
@@ -61,7 +61,7 @@ if ($scan->status == plagiarism_origai_status_enums::FAILED) {
             $modulename,
             $cmid,
             $returnurl
-        )
+        ),
     ]);
     die;
 }
@@ -75,6 +75,6 @@ echo json_encode([
         null,
         $scan->userid,
         $coursemodule
-    )
+    ),
 ]);
 die;

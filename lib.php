@@ -117,7 +117,6 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
             $course = $DB->get_record('course', ['id' => $coursemodule->course], 'shortname');
         }
 
-
         // Get origai plugin admin config.
         static $adminconfig;
         if (empty($adminconfig)) {
@@ -236,10 +235,10 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
             'origai-logo-container'
         );
 
-        static $loadedJs;
-        if(!$loadedJs){
+        static $loadedjs;
+        if(!$loadedjs){
             $PAGE->requires->js_call_amd('plagiarism_origai/scantrigger', 'init');
-            $loadedJs = true;
+            $loadedjs = true;
         }
 
         // Generate links for both scan types.
@@ -263,7 +262,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
                             'runaicheck' : 'runplagiarismcheck',
                         'plagiarism_origai'
                     ),
-                    'scantype' => $response->scan_type
+                    'scantype' => $response->scan_type,
                 ]);
                 continue;
             }
@@ -330,7 +329,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
             [
                 'href'  => $url,
                 'class' => 'origai-scan-trigger origai-action-button my-2 mr-2',
-                'data-plagiarism_origa-trigger-scanid' => $options['scanid']
+                'data-plagiarism_origa-trigger-scanid' => $options['scanid'],
             ]
         );
 
@@ -416,7 +415,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
         if ($response->scan_type == plagiarism_origai_scan_type_enums::PLAGIARISM) {
             $thresholdcolor = plagiarism_origai_action::get_plag_threshold_color($response->total_text_score);
             $output .= html_writer::start_div('origai-section origai-section-' . $thresholdcolor, [
-                'class' => 'mr-3'
+                'class' => 'mr-3',
             ]);
             $output .= html_writer::tag(
                 'h3',
@@ -435,7 +434,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
             );
             $thresholdcolor = plagiarism_origai_action::get_ai_threshold_color($aiclassification, $confidencescore);
             $output .= html_writer::start_div('origai-section origai-section-' . $thresholdcolor, [
-                'class' => 'mr-3'
+                'class' => 'mr-3',
             ]);
             $classifytext = $aiclassification == "AI" ?
                 get_string('aipercentage', 'plagiarism_origai', $confidencescore . '%') :
@@ -478,7 +477,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
             'data-plagiarism_origa-poll-scanid' => $response->id,
             'data-plagiarism_origa-cmid' => $response->cmid,
             'data-plagiarism_origa-coursemodule' => $modulename,
-            'data-plagiarism_origa-sesskey' => sesskey()
+            'data-plagiarism_origa-sesskey' => sesskey(),
         ]);
         if ($response->scan_type == plagiarism_origai_scan_type_enums::PLAGIARISM) {
             $output .= html_writer::tag(
