@@ -1,11 +1,13 @@
 # Changelog
 
-## [v2.0.2](https://github.com/cursiveinc/moodle-plagiarism_origai/tree/v2.0.2) (2025-08-20)
+## [v2.0.2](https://github.com/cursiveinc/moodle-plagiarism_origai/tree/v2.0.2) (2025-08-28)
 
 [Full Changelog](https://github.com/cursiveinc/moodle-plagiarism_origai/compare/v2.0.1...v2.0.2)
 
 **Merged pull requests:**
 
+- Localization for multiple languages [\#18](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/18) ([emlycool](https://github.com/emlycool))
+- Update changelog [\#17](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/17) ([github-actions[bot]](https://github.com/apps/github-actions))
 - Update changelog [\#16](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/16) ([github-actions[bot]](https://github.com/apps/github-actions))
 
 ## [v2.0.1](https://github.com/cursiveinc/moodle-plagiarism_origai/tree/v2.0.1) (2025-08-20)
