@@ -60,7 +60,7 @@ class plagiarism_setup_form extends moodleform {
             $mform->addElement(
                 'advcheckbox',
                 'plagiarism_origai_mod_' . $module,
-                get_string('enablemodule', 'plagiarism_origai', ucfirst($module == 'assign' ? 'Assignment' : $module))
+                get_string('enablemodule', 'plagiarism_origai', get_string($module, 'plagiarism_origai'))
             );
         }
 
