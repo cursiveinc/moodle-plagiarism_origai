@@ -2,7 +2,7 @@
 
 ## [v2.1.0](https://github.com/cursiveinc/moodle-plagiarism_origai/tree/v2.1.0) (2025-09-02)
 
-[Full Changelog](https://github.com/cursiveinc/moodle-plagiarism_origai/compare/v2.0.2...v2.1.0)
+[Full Changelog](https://github.com/cursiveinc/moodle-plagiarism_origai/compare/v2.0.1...v2.1.0)
 
 **Merged pull requests:**
 
