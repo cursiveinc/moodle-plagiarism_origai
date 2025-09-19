@@ -96,9 +96,6 @@ class assessment_listener {
         )) {
             $eventdata['other']['content'] = $txtsubmissionref->onlinetext;
         }
-        $assignment = $DB->get_record('assign', [
-            'id' => $submission->assignment,
-        ], 'name');
 
         try {
             $userid = empty($eventdata['relateduserid']) ?
@@ -108,13 +105,26 @@ class assessment_listener {
                 plagiarism_origai_scan_type_enums::AI,
             ];
 
+            $submissiondate = plagiarism_origai_action::format_submission_timestamp(time());
+            if (!empty($submission->timemodified) && is_numeric($submission->timemodified)) {
+                $submissiondate = plagiarism_origai_action::format_submission_timestamp($submission->timemodified);
+            }
+
             if (!empty($eventdata['other']['content'])) {
+                $scanmeta = plagiarism_origai_action::construct_scan_meta(
+                    $coursemodule->name,
+                    get_string('assign', 'plagiarism_origai'),
+                    $userid,
+                    $course->shortname,
+                    $submissiondate,
+                    \core\uuid::generate()
+                );
                 foreach ($scantypes as $scantype) {
                     $content = $eventdata['other']['content'];
                     $title = plagiarism_origai_action::generate_scan_title(
                         $course->shortname,
                         $content,
-                        $assignment->name
+                        $coursemodule->name
                     );
                     plagiarism_origai_action::queue_new_submission([
                         'scan_type' => $scantype,
@@ -124,16 +134,25 @@ class assessment_listener {
                         'title' => $title,
                         'content' => $content,
                         'contenthash' => plagiarism_origai_action::generate_content_hash($content),
+                        'meta' => $scanmeta
                     ]);
                 }
             }
             foreach ($eventdata['other']['pathnamehash'] as $pathnamehash) {
+                $scanmeta = plagiarism_origai_action::construct_scan_meta(
+                    $coursemodule->name,
+                    get_string('assign', 'plagiarism_origai'),
+                    $userid,
+                    $course->shortname,
+                    $submissiondate,
+                    \core\uuid::generate()
+                );
                 $textextractor = plagiarism_origai_text_extractor::make(null, $pathnamehash);
                 $content = $textextractor->extract();
                 $title = plagiarism_origai_action::generate_scan_title(
                     $course->shortname,
                     $content,
-                    $assignment->name
+                    $coursemodule->name
                 );
                 if (!$content) {
                     if ($textextractor->get_stored_file()->get_filename() === '.') {
@@ -164,6 +183,7 @@ class assessment_listener {
                         'title' => $title,
                         'content' => $content,
                         'contenthash' => plagiarism_origai_action::generate_content_hash($content),
+                        'meta' => $scanmeta
                     ]);
                 }
             }
@@ -219,6 +239,9 @@ class assessment_listener {
         }
 
         $forumpost = $event->get_record_snapshot('forum_posts', $eventdata['objectid']);
+        if (!$forumpost) {
+            return;
+        }
 
         try {
             $userid = $eventdata['userid'];
@@ -227,7 +250,17 @@ class assessment_listener {
                 plagiarism_origai_scan_type_enums::AI,
             ];
 
+            $submissiondate = plagiarism_origai_action::format_submission_timestamp($forumpost->modified);
+
             if (!empty($eventdata['other']['content'])) {
+                $scanmeta = plagiarism_origai_action::construct_scan_meta(
+                    $coursemodule->name,
+                    get_string('forum', 'plagiarism_origai'),
+                    $userid,
+                    $course->shortname,
+                    $submissiondate,
+                    \core\uuid::generate()
+                );
                 foreach ($scantypes as $scantype) {
                     $content = $eventdata['other']['content'];
                     $title = plagiarism_origai_action::generate_scan_title(
@@ -243,10 +276,19 @@ class assessment_listener {
                         'title' => $title,
                         'content' => $content,
                         'contenthash' => plagiarism_origai_action::generate_content_hash($content),
+                        'meta' => $scanmeta
                     ]);
                 }
             }
             foreach ($eventdata['other']['pathnamehashes'] as $pathnamehash) {
+                $scanmeta = plagiarism_origai_action::construct_scan_meta(
+                    $coursemodule->name,
+                    get_string('forum', 'plagiarism_origai'),
+                    $userid,
+                    $course->shortname,
+                    $submissiondate,
+                    \core\uuid::generate()
+                );
                 $textextractor = plagiarism_origai_text_extractor::make(null, $pathnamehash);
                 $content = $textextractor->extract();
                 $title = plagiarism_origai_action::generate_scan_title(
@@ -283,6 +325,7 @@ class assessment_listener {
                         'title' => $title ?? substr(html_to_text($content, 0, false), 0, 255),
                         'content' => $content,
                         'contenthash' => plagiarism_origai_action::generate_content_hash($content),
+                        'meta' => $scanmeta
                     ]);
                 }
             }

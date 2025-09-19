@@ -135,5 +135,20 @@ function xmldb_plagiarism_origai_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025071800, 'plagiarism', 'origai');
     }
 
+    if ($oldversion < 2025091900) {
+
+        // Define field meta to be added to plagiarism_origai_plagscan.
+        $table = new xmldb_table('plagiarism_origai_plagscan');
+        $field = new xmldb_field('meta', XMLDB_TYPE_TEXT, null, null, null, null, null, 'contenthash');
+
+        // Conditionally launch add field meta.
+        if (!$dbman->field_exists($table, $field)) {
+            $dbman->add_field($table, $field);
+        }
+
+        // Origai savepoint reached.
+        upgrade_plugin_savepoint(true, 2025091900, 'plagiarism', 'origai');
+    }
+
     return $result;
 }

@@ -125,6 +125,7 @@ class send_submissions extends \core\task\scheduled_task {
         if (!plagiarism_origai_action::mark_scan_as_processing($scanrecordids)) {
             return $batch;
         }
+        $scanmeta = isset($record->meta)? json_decode($record->meta, true) : [];
         foreach ($records as $record) {
             $payload = [
                 'title' => $record->title,
@@ -132,6 +133,15 @@ class send_submissions extends \core\task\scheduled_task {
                 'content' => $record->content,
                 'scan_ai' => $record->scan_type == plagiarism_origai_scan_type_enums::AI,
                 'scan_plag' => $record->scan_type == plagiarism_origai_scan_type_enums::PLAGIARISM,
+                'meta' => [
+                    'activity_name' => $scanmeta['activity_name'] ?? null,
+                    "activity_type" => $scanmeta['activity_type'] ?? null,
+                    'author_id' => isset($scanmeta['author_id']) ? (string)$scanmeta['author_id'] : null,
+                    "course_module" => $scanmeta['course_module'] ?? null,
+                    "submission_date" => $scanmeta['submission_date'] ?? null,
+                    "submission_ref" => $scanmeta['submission_ref'] ?? null,
+                    "submission_title" => $record->title
+                ]
             ];
             $batch[] = $payload;
         }

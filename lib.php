@@ -171,7 +171,19 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
         }
 
         $responses = [];
-
+        $submissiondate = plagiarism_origai_action::get_submission_date(
+            $modulename,
+            $itemid,
+            $userid
+        );
+        $scanmeta = plagiarism_origai_action::construct_scan_meta(
+            $coursemodule->name,
+            get_string('quiz', 'plagiarism_origai'),
+            $userid,
+            $course->shortname,
+            $submissiondate,
+            \core\uuid::generate()
+        );
         foreach ([
                 plagiarism_origai_scan_type_enums::PLAGIARISM,
                 plagiarism_origai_scan_type_enums::AI,
@@ -204,6 +216,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
                     'title'       => $title,
                     'content'     => $content,
                     'contenthash' => plagiarism_origai_action::generate_content_hash($content),
+                    'meta' => $scanmeta
                 ]);
             }
 

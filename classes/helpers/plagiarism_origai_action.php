@@ -105,6 +105,7 @@ class plagiarism_origai_action {
             $record->success = $submission['success'] ?? null;
             $record->update_time = null;
             $record->contenthash = $submission['contenthash'] ?? self::generate_content_hash($record->content);
+            $record->meta = isset($submission['meta']) ? json_encode($submission['meta']) : null;
 
             $id = $DB->insert_record($table, $record);
             $record->id = $id;
@@ -127,6 +128,11 @@ class plagiarism_origai_action {
         try {
             global $DB;
             $table = "plagiarism_origai_plagscan";
+
+            if (is_array($record->meta) || is_object($record->meta)) {
+                $record->meta = json_encode($record->meta);
+            }
+
             $DB->update_record($table, $record);
             return $record;
         } catch (\Throwable $th) {
@@ -407,5 +413,79 @@ class plagiarism_origai_action {
         }
 
         return $courseshortname;
+    }
+
+    /**
+     * Construct scan meta
+     * @param string $activityname
+     * @param string $activitytype
+     * @param int $authorid
+     * @param string $courseshortname
+     * @param string $submissiondate
+     * @param string $submissionref
+     * @return array
+     */
+    public static function construct_scan_meta(
+        $activityname,
+        $activitytype,
+        $authorid,
+        $courseshortname,
+        $submissiondate,
+        $submissionref
+    ) {
+        return [
+            'activity_name' => $activityname,
+            'activity_type' => $activitytype,
+            'author_id' => $authorid,
+            'course_module' => $courseshortname,
+            'submission_date' => $submissiondate,
+            'submission_ref' => $submissionref
+        ];
+    }
+
+
+    /**
+     * Format timestamp to ISO 8601 format.
+     * @param int $timestamp
+     * @return string
+     */
+    public static function format_submission_timestamp($timestamp) {
+        return (new \DateTime('@' . $timestamp))->format('c');
+    }
+
+    /**
+     * Get submission date for an activity submission
+     * @param string $modname
+     * @param ?int $itemId
+     * @param ?int $userid
+     * @return int|null
+     */
+    public static function get_submission_date($modname, $itemId, $userid) {
+        global $DB;
+        if (is_null($itemId) || is_null($userid)) {
+            return null;
+        }
+        if ($modname == 'assign'){
+            $submission = $DB->get_record('assign_submission', [
+                'id' => $itemId,
+                'userid'     => $userid
+            ], 'id, timemodified', IGNORE_MISSING);
+            return $submission->timemodified;
+        }
+        if ($modname == 'quiz'){
+            $submission = $DB->get_record('quiz_attempts', [
+                'id' => $itemId,
+                'userid'     => $userid
+            ], 'id, timefinish, timemodified', IGNORE_MISSING);
+            return $submission->timefinish == 0 ? $submission->timemodified : $submission->timefinish;
+        }
+        if ($modname == 'forum'){
+            $submission = $DB->get_record('forum_posts', [
+                'id' => $itemId,
+                'userid'     => $userid
+            ], 'id, modified', IGNORE_MISSING);
+            return $submission->modified;
+        }
+        return null;
     }
 }

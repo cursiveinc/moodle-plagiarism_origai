@@ -85,7 +85,20 @@ class quiz_submission_scan_task extends \core\task\adhoc_task {
                             plagiarism_origai_scan_type_enums::AI,
                         ];
 
+                        $submissiondate = plagiarism_origai_action::format_submission_timestamp(
+                            $attempt->get_submitted_date() != 0 ? $attempt->get_submitted_date() :
+                            $attempt->get_attempt()->timemodified
+                        );
+
                         if (!empty($content)) {
+                            $scanmeta = plagiarism_origai_action::construct_scan_meta(
+                                $coursemodule->name,
+                                get_string('quiz', 'plagiarism_origai'),
+                                $userid,
+                                $course->shortname,
+                                $submissiondate,
+                                \core\uuid::generate()
+                            );
                             $title = plagiarism_origai_action::generate_scan_title(
                                 $course->shortname,
                                 $content,
@@ -100,10 +113,19 @@ class quiz_submission_scan_task extends \core\task\adhoc_task {
                                     'title' => $title,
                                     'content' => $content,
                                     'contenthash' => plagiarism_origai_action::generate_content_hash($content),
+                                    'meta' => $scanmeta
                                 ]);
                             }
                         }
                         foreach ($attachments as $pathnamehash) {
+                            $scanmeta = plagiarism_origai_action::construct_scan_meta(
+                                $coursemodule->name,
+                                get_string('quiz', 'plagiarism_origai'),
+                                $userid,
+                                $course->shortname,
+                                $submissiondate,
+                                \core\uuid::generate()
+                            );
                             $textextractor = plagiarism_origai_text_extractor::make(null, $pathnamehash);
                             $content = $textextractor->extract();
                             $title = plagiarism_origai_action::generate_scan_title(
@@ -140,6 +162,7 @@ class quiz_submission_scan_task extends \core\task\adhoc_task {
                                     'title' => $title,
                                     'content' => $content,
                                     'contenthash' => plagiarism_origai_action::generate_content_hash($content),
+                                    'meta' => $scanmeta
                                 ]);
                             }
                         }
