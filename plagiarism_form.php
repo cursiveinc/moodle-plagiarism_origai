@@ -60,7 +60,7 @@ class plagiarism_setup_form extends moodleform {
             $mform->addElement(
                 'advcheckbox',
                 'plagiarism_origai_mod_' . $module,
-                get_string('enablemodule', 'plagiarism_origai', ucfirst($module == 'assign' ? 'Assignment' : $module))
+                get_string('enablemodule', 'plagiarism_origai', get_string($module, 'plagiarism_origai'))
             );
         }
 
@@ -121,14 +121,15 @@ class plagiarism_setup_form extends moodleform {
      * @return void
      */
     public function init_form_data() {
+        plagiarism_origai_plugin_config::clear_admin_config_cache();
         $config = plagiarism_origai_plugin_config::admin_config();
-        $default_api_base_url = plagiarism_origai_plugin_config::get_default_api_base_url();
-        if (isset($config['apiurl']) && $config['apiurl'] != $default_api_base_url) {
-            \core\notification::warning(get_string('apiurlchanged', 'plagiarism_origai', $default_api_base_url));
+        $defaultapibaseurl = plagiarism_origai_plugin_config::get_default_api_base_url();
+        if (isset($config['apiurl']) && $config['apiurl'] != $defaultapibaseurl) {
+            \core\notification::warning(get_string('apiurlchanged', 'plagiarism_origai', $defaultapibaseurl));
         }
 
         if (!isset($config['apiurl']) || empty($config['apiurl'])) {
-            $config['apiurl'] = $default_api_base_url;
+            $config['apiurl'] = $defaultapibaseurl;
         }
 
         if (

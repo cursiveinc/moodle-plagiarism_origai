@@ -1,5 +1,35 @@
 # Changelog
 
+## [v2.1.0](https://github.com/cursiveinc/moodle-plagiarism_origai/tree/v2.1.0) (2025-09-02)
+
+[Full Changelog](https://github.com/cursiveinc/moodle-plagiarism_origai/compare/v2.0.1...v2.1.0)
+
+**Merged pull requests:**
+
+- chore: minor version bump for newly added languages support [\#20](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/20) ([emlycool](https://github.com/emlycool))
+- Localization for multiple languages [\#18](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/18) ([emlycool](https://github.com/emlycool))
+- Update changelog [\#17](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/17) ([github-actions[bot]](https://github.com/apps/github-actions))
+- Update changelog [\#16](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/16) ([github-actions[bot]](https://github.com/apps/github-actions))
+
+## [v2.0.1](https://github.com/cursiveinc/moodle-plagiarism_origai/tree/v2.0.1) (2025-08-20)
+
+[Full Changelog](https://github.com/cursiveinc/moodle-plagiarism_origai/compare/v2.0.0...v2.0.1)
+
+**Merged pull requests:**
+
+- chore: bump version for patch [\#15](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/15) ([emlycool](https://github.com/emlycool))
+- fix: invalidate cache of outdated credentials [\#14](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/14) ([emlycool](https://github.com/emlycool))
+- Update changelog [\#13](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/13) ([github-actions[bot]](https://github.com/apps/github-actions))
+
+## [v2.0.0](https://github.com/cursiveinc/moodle-plagiarism_origai/tree/v2.0.0) (2025-08-18)
+
+[Full Changelog](https://github.com/cursiveinc/moodle-plagiarism_origai/compare/v1.1.5...v2.0.0)
+
+**Merged pull requests:**
+
+- 2.x [\#12](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/12) ([emlycool](https://github.com/emlycool))
+- Update changelog [\#11](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/11) ([github-actions[bot]](https://github.com/apps/github-actions))
+
 ## [v1.1.5](https://github.com/cursiveinc/moodle-plagiarism_origai/tree/v1.1.5) (2025-07-17)
 
 [Full Changelog](https://github.com/cursiveinc/moodle-plagiarism_origai/compare/v1.1.4...v1.1.5)

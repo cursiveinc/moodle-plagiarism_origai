@@ -47,6 +47,7 @@ class plagiarism_origai_api {
      * @throws \moodle_exception
      */
     public function __construct() {
+        plagiarism_origai_plugin_config::clear_admin_config_cache();
         $baseurl = plagiarism_origai_plugin_config::admin_config(
             'apiurl',
             plagiarism_origai_plugin_config::get_default_api_base_url()
