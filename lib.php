@@ -248,6 +248,23 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
             'origai-logo-container'
         );
 
+        // Check if submission ref exists
+        if ($submissionRef = $this->get_submission_ref($responses[0])) {
+            $output .= html_writer::div(
+                html_writer::span(
+                    $submissionRef,
+                    'd-inline-block text-truncate',
+                    [
+                        'title' => $submissionRef
+                    ]
+                ),
+                'badge badge-info d-block mt-',
+                [
+                    'style' => 'width: max-content; margin-top: .5rem;'
+                ]
+            );
+        }
+
         static $loadedjs;
         if(!$loadedjs){
             $PAGE->requires->js_call_amd('plagiarism_origai/scantrigger', 'init');
@@ -510,6 +527,21 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
         $output .= html_writer::end_div(); // d-flex.
         $output .= html_writer::end_div(); // origai-section.
         return $output;
+    }
+
+    /**
+     * @param object $scan
+     * @return string|null
+     */
+    private function get_submission_ref($scan) {
+        if (!isset($scan->meta)) {
+            return null;
+        }
+        $meta = json_decode($scan->meta);
+        if (json_last_error() !== JSON_ERROR_NONE || $meta === null) {
+            return null;
+        }
+        return isset($meta->submission_ref) ? $meta->submission_ref : null;
     }
 
     /**
