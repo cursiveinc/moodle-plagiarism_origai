@@ -19,11 +19,21 @@ namespace plagiarism_origai\privacy;
 use core_privacy\local\metadata\collection;
 use core_privacy\local\request\contextlist;
 use core_privacy\local\request\helper;
+use core_privacy\local\request\userlist;
+use core_privacy\local\request\approved_userlist;
 use core_privacy\local\request\writer;
+
+
+if (interface_exists('\core_privacy\local\request\core_userlist_provider')) {
+    interface core_userlist_provider extends \core_privacy\local\request\core_userlist_provider{}
+} else {
+    interface core_userlist_provider {};
+}
 
 class provider implements
     \core_privacy\local\metadata\provider,
-    \core_plagiarism\privacy\plagiarism_provider {
+    \core_plagiarism\privacy\plagiarism_provider,
+    core_userlist_provider {
     use \core_privacy\local\legacy_polyfill;
     use \core_plagiarism\privacy\legacy_polyfill;
 
@@ -42,6 +52,10 @@ class provider implements
 
         $collection->add_external_location_link('plagiarism_originalityai_client', [
             'content' => 'privacy:metadata:plagiarism_origai_client:submission_content',
+            'coursemodule' => 'privacy:metadata:plagiarism_origai_client:coursemodule',
+            'submissiondate' => 'privacy:metadata:plagiarism_origai_client:submissiondate',
+            'submissionref' => 'privacy:metadata:plagiarism_origai_client:submissionref',
+            'moodleuserid' => 'privacy:metadata:plagiarism_origai_client:moodleuserid',
         ], 'privacy:metadata:plagiarism_origai_client');
 
         return $collection;
@@ -60,7 +74,7 @@ class provider implements
             "JOIN {modules} m ON cm.module = m.id AND m.name = :modulename " .
             "JOIN {assign} a ON cm.instance = a.id " .
             "JOIN {context} ctx ON cm.id = ctx.instanceid AND ctx.contextlevel = :contextlevel " .
-            "JOIN {plagiarism_origai_plagscan} ps ON ps.cm = cm.id " .
+            "JOIN {plagiarism_origai_plagscan} ps ON ps.cmid = cm.id " .
             "WHERE ps.userid = :userid";
 
         $contextlist = new contextlist();
@@ -77,24 +91,30 @@ class provider implements
         }
 
         $user = $DB->get_record('user', ['id' => $userid]);
+        if (!$user) {
+            return;
+        }
 
-        $params = ['userid' => $user->id];
+        $params = ['userid' => $user->id, 'cmid' => $context->instanceid];
 
-        $sql = "SELECT id, userid, cmid, total_text_score,flesch_grade_level update_time " .
+        $sql = "SELECT id, userid, cmid, total_text_score, original_score, ai_score, content, update_time " .
             "FROM {plagiarism_origai_plagscan} " .
-            "WHERE userid = :userid";
+            "WHERE userid = :userid AND cmid = :cmid";
         $submissions = $DB->get_records_sql($sql, $params);
 
+        $exportdata = ['scans' => []];
         foreach ($submissions as $submission) {
-            $context = \context_module::instance($submission->cm);
-
-            $contextdata = helper::get_context_data($context, $user);
-
-            $contextdata = (object)array_merge((array)$contextdata, $submission);
-            writer::with_context($context)->export_data([], $contextdata);
-
-            helper::get_context_data($context, $user);
+            $exportdata['scans'][] = [
+                'content' => $submission->content,
+                'total_text_score' => $submission->total_text_score,
+                'original_score' => $submission->original_score,
+                'ai_score' => $submission->ai_score,
+                'update_time' => $submission->update_time ? \core_privacy\local\request\transform::datetime(strtotime($submission->update_time)): null
+            ];
         }
+        $contextdata = helper::get_context_data($context, $user);
+        $contextdata = (object) array_merge((array)$contextdata, $exportdata);
+        writer::with_context($context)->export_data($subcontext, $contextdata);
     }
 
     public static function _delete_plagiarism_for_context(\context $context) {
@@ -119,5 +139,64 @@ class provider implements
         }
 
         $DB->delete_records('plagiarism_origai_plagscan', ['userid' => $userid, 'cmid' => $context->instanceid]);
+    }
+
+    /**
+     * Get the list of users who have data within a context.
+     *
+     * @param   userlist    $userlist   The userlist containing the list of users who have data in this context/plugin combination.
+     */
+    public static function get_users_in_context(userlist $userlist) {
+        $context = $userlist->get_context();
+
+        if ($context->contextlevel != CONTEXT_MODULE) {
+            return;
+        }
+
+        $sql = "SELECT ps.userid
+                  FROM {plagiarism_origai_plagscan} ps
+                 WHERE ps.cmid = :cmid";
+
+        $params = [
+            'cmid' => $context->instanceid,
+        ];
+
+        $userlist->add_from_sql('userid', $sql, $params);
+    }
+
+    /**
+     * Delete multiple users within a single context.
+     *
+     * @param   approved_userlist       $userlist The approved context and user information to delete information for.
+     */
+    public static function delete_data_for_users(approved_userlist $userlist) {
+        global $DB;
+
+        $context = $userlist->get_context();
+
+        if ($context->contextlevel != CONTEXT_MODULE) {
+            return;
+        }
+
+        $userids = $userlist->get_userids();
+
+        list($insql, $inparams) = $DB->get_in_or_equal($userids, SQL_PARAMS_NAMED, 'userid');
+
+        $sql = "SELECT ps.id
+                FROM {plagiarism_origai_plagscan} ps
+                JOIN {course_modules} c
+                    ON ps.cmid = c.id
+                WHERE ps.userid $insql
+                    AND c.id = :cmid";
+
+        $params = [
+            'cmid' => $context->instanceid,
+        ];
+
+        $params = array_merge($params, $inparams);
+
+        $scanids = $DB->get_fieldset_sql($sql, $params);
+
+        $DB->delete_records_list('plagiarism_origai_plagscan', 'id', array_values($scanids));
     }
 }
