@@ -81,7 +81,11 @@ class send_submissions extends \core\task\scheduled_task {
             $batch = $this->prepare_batch($queuedsubmissions);
 
             $response = $originalityapi->batch_scan($batch);
-            if ($response === false || (isset($response->success) && !$response->success)) {
+            if (
+                $response === false || 
+                (isset($response->success) && !$response->success) ||
+                !isset($response->success)
+            ) {
 
                 $errormessage = isset($response->message) ?
                     $response->message : get_string('defaultscanerror', 'plagiarism_origai');
