@@ -134,7 +134,7 @@ class assessment_listener {
                         'title' => $title,
                         'content' => $content,
                         'contenthash' => plagiarism_origai_action::generate_content_hash($content),
-                        'meta' => $scanmeta
+                        'meta' => $scanmeta,
                     ]);
                 }
             }
@@ -183,7 +183,7 @@ class assessment_listener {
                         'title' => $title,
                         'content' => $content,
                         'contenthash' => plagiarism_origai_action::generate_content_hash($content),
-                        'meta' => $scanmeta
+                        'meta' => $scanmeta,
                     ]);
                 }
             }
@@ -276,7 +276,7 @@ class assessment_listener {
                         'title' => $title,
                         'content' => $content,
                         'contenthash' => plagiarism_origai_action::generate_content_hash($content),
-                        'meta' => $scanmeta
+                        'meta' => $scanmeta,
                     ]);
                 }
             }
@@ -325,7 +325,7 @@ class assessment_listener {
                         'title' => $title ?? substr(html_to_text($content, 0, false), 0, 255),
                         'content' => $content,
                         'contenthash' => plagiarism_origai_action::generate_content_hash($content),
-                        'meta' => $scanmeta
+                        'meta' => $scanmeta,
                     ]);
                 }
             }

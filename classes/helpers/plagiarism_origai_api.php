@@ -65,7 +65,7 @@ class plagiarism_origai_api {
             $httpclient = new plagiarism_origai_http_client();
             $httpclient->set_timeout(15);
             list($responsebody, $statuscode) = $httpclient->get($this->baseurl . '/moodle/status');
-            if(
+            if (
                 $statuscode == static::RESPONSEOK &&
                 $responsebody && isset(json_decode($responsebody)->success) &&
                 json_decode($responsebody)->success
@@ -136,7 +136,7 @@ class plagiarism_origai_api {
                 ['X-OAI-API-KEY' => $this->apikey]
             );
             list($responsebody, $statuscode) = $response;
-            if($statuscode != static::RESPONSEOK && empty($responsebody)) {
+            if ($statuscode != static::RESPONSEOK && empty($responsebody)) {
                 return false;
             }
             return json_decode($responsebody);
@@ -160,7 +160,7 @@ class plagiarism_origai_api {
                 ['X-OAI-API-KEY' => $this->apikey]
             );
             list($responsebody, $statuscode) = $response;
-            if($statuscode != static::RESPONSEOK && empty($responsebody)) {
+            if ($statuscode != static::RESPONSEOK && empty($responsebody)) {
                 return false;
             }
             return json_decode($responsebody);

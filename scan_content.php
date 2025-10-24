@@ -21,9 +21,9 @@
   * @copyright Originality.ai, https://originality.ai
   * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
   */
-require_once ('../../config.php');
-require_once ($CFG->libdir . '/filelib.php');
-require_once (__DIR__ .'/lib.php');
+require_once('../../config.php');
+require_once($CFG->libdir . '/filelib.php');
+require_once(__DIR__ .'/lib.php');
 
 use plagiarism_origai\helpers\plagiarism_origai_plugin_config;
 use plagiarism_origai\helpers\plagiarism_origai_action;
@@ -39,7 +39,7 @@ $isasync = optional_param('isasync', 0, PARAM_INT);
 $returnurl = required_param("returnurl", PARAM_LOCALURL);
 
 global $DB, $PAGE;
-if(is_null($isasync)){
+if (is_null($isasync)) {
     $isasync = 0;
 }
 
@@ -53,7 +53,7 @@ if(
     !$scan ||
     ($scan && $scan->status != plagiarism_origai_status_enums::PENDING)
 ){
-    if($isasync){
+    if ($isasync) {
         echo json_encode([
             'status' => 'error',
             'message' => get_string('scanfailed', 'plagiarism_origai'),
@@ -68,7 +68,7 @@ require_capability('mod/assign:grade', $context);
 
 $enabled = plagiarism_origai_plugin_config::is_module_enabled($modulename, $cmid);
 if (!$enabled) {
-    if($isasync){
+    if ($isasync) {
         echo json_encode([
             'status' => 'error',
             'message' => get_string('pluginname', 'plagiarism_origai') . "not enabled/configured",
@@ -82,7 +82,7 @@ if (!$enabled) {
 $scan->status = plagiarism_origai_status_enums::SCHEDULED;
 plagiarism_origai_action::update_scan_record($scan);
 
-if($isasync){
+if ($isasync) {
     echo json_encode([
         'status' => 'success',
         'message' => get_string('scanqueuednotification', 'plagiarism_origai'),

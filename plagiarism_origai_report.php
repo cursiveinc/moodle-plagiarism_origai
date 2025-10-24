@@ -192,12 +192,10 @@ if (!$moduleenabled) {
                     }
                 ");
             }
-        }
-        else {
+        } else {
             echo html_writer::div(get_string('scanreportfailed', 'plagiarism_origai'), 'alert alert-warning');
         }
-    }
-    else{
+    } else {
         echo html_writer::div(get_string('nopageaccess', 'plagiarism_origai'), 'alert alert-danger');
     }
 }

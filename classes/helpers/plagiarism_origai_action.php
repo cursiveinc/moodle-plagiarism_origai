@@ -439,7 +439,7 @@ class plagiarism_origai_action {
             'author_id' => $authorid,
             'course_module' => $courseshortname,
             'submission_date' => $submissiondate,
-            'submission_ref' => $submissionref
+            'submission_ref' => $submissionref,
         ];
     }
 
@@ -460,29 +460,29 @@ class plagiarism_origai_action {
      * @param ?int $userid
      * @return int|null
      */
-    public static function get_submission_date($modname, $itemId, $userid) {
+    public static function get_submission_date($modname, $itemid, $userid) {
         global $DB;
-        if (is_null($itemId) || is_null($userid)) {
+        if (is_null($itemid) || is_null($userid)) {
             return null;
         }
-        if ($modname == 'assign'){
+        if ($modname == 'assign') {
             $submission = $DB->get_record('assign_submission', [
-                'id' => $itemId,
-                'userid'     => $userid
+                'id' => $itemid,
+                'userid'     => $userid,
             ], 'id, timemodified', IGNORE_MISSING);
             return $submission->timemodified;
         }
-        if ($modname == 'quiz'){
+        if ($modname == 'quiz') {
             $submission = $DB->get_record('quiz_attempts', [
-                'id' => $itemId,
-                'userid'     => $userid
+                'id' => $itemid,
+                'userid'     => $userid,
             ], 'id, timefinish, timemodified', IGNORE_MISSING);
             return $submission->timefinish == 0 ? $submission->timemodified : $submission->timefinish;
         }
-        if ($modname == 'forum'){
+        if ($modname == 'forum') {
             $submission = $DB->get_record('forum_posts', [
-                'id' => $itemId,
-                'userid'     => $userid
+                'id' => $itemid,
+                'userid'     => $userid,
             ], 'id, modified', IGNORE_MISSING);
             return $submission->modified;
         }

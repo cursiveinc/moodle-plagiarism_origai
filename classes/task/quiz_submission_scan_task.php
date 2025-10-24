@@ -113,7 +113,7 @@ class quiz_submission_scan_task extends \core\task\adhoc_task {
                                     'title' => $title,
                                     'content' => $content,
                                     'contenthash' => plagiarism_origai_action::generate_content_hash($content),
-                                    'meta' => $scanmeta
+                                    'meta' => $scanmeta,
                                 ]);
                             }
                         }
@@ -162,7 +162,7 @@ class quiz_submission_scan_task extends \core\task\adhoc_task {
                                     'title' => $title,
                                     'content' => $content,
                                     'contenthash' => plagiarism_origai_action::generate_content_hash($content),
-                                    'meta' => $scanmeta
+                                    'meta' => $scanmeta,
                                 ]);
                             }
                         }

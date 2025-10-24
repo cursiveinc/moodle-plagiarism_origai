@@ -20,13 +20,17 @@
   * @category  plagiarism
   * @copyright Originality.ai, https://originality.ai
   * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
-*/
+  */
 
 namespace plagiarism_origai\form;
 
 use core_form\dynamic_form;
 use plagiarism_origai\helpers\plagiarism_origai_plugin_config;
 
+/**
+ * Class scan_settings_form
+ * @package plagiarism_origai\form
+ */
 class scan_settings_form extends dynamic_form {
 
     /**
@@ -66,7 +70,7 @@ class scan_settings_form extends dynamic_form {
         // -----------------------------
         $mform->addElement('header', 'uploadtemplate', get_string('uploadtemplate', 'plagiarism_origai'));
         $mform->addElement(
-            'html', 
+            'html',
             '<div class="mt-2 mb-3">' . get_string('uploadtemplatedesc', 'plagiarism_origai')
             . '</div>');
 
@@ -79,7 +83,7 @@ class scan_settings_form extends dynamic_form {
                 'subdirs' => 0,
                 'maxbytes' => 500000,
                 'maxfiles' => 2,
-                'accepted_types' => ['.doc', '.docx', '.pdf', '.txt']
+                'accepted_types' => ['.doc', '.docx', '.pdf', '.txt'],
             ]
         );
         $mform->setType('exclude_templates', PARAM_INT);
@@ -112,22 +116,22 @@ class scan_settings_form extends dynamic_form {
         if (!empty($data['exclude_urls'])) {
             // Split by newlines, trim whitespace.
             $urls = preg_split('/\r\n|\r|\n/', trim($data['exclude_urls']));
-            $lineNumber = 1;
+            $linenumber = 1;
 
             foreach ($urls as $url) {
                 $url = trim($url);
                 if ($url === '') {
-                    $lineNumber++;
+                    $linenumber++;
                     continue;
                 }
 
                 // Validate URL format using PHP's built-in filter.
                 if (!filter_var($url, FILTER_VALIDATE_URL)) {
-                    $errors['exclude_urls'] = get_string('invalidurl', 'plagiarism_origai', $lineNumber);
+                    $errors['exclude_urls'] = get_string('invalidurl', 'plagiarism_origai', $linenumber);
                     break; // stop at first invalid line.
                 }
 
-                $lineNumber++;
+                $linenumber++;
             }
         }
 
@@ -174,7 +178,7 @@ class scan_settings_form extends dynamic_form {
                 [
                     'subdirs' => 0,
                     'maxfiles' => 2,
-                    'maxbytes' => 50000
+                    'maxbytes' => 50000,
                 ]
             );
         }
@@ -183,7 +187,7 @@ class scan_settings_form extends dynamic_form {
         $defaults = plagiarism_origai_plugin_config::scan_setting_defaults();
         foreach ($defaults as $key => $value) {
             $value = $data->{$key} ?? $value;
-            if (empty($value)){
+            if (empty($value)) {
                 continue;
             }
             plagiarism_origai_plugin_config::set_cm_config($cmid, $key, $value);
@@ -215,7 +219,7 @@ class scan_settings_form extends dynamic_form {
             [
                 'subdirs' => 0,
                 'maxfiles' => 2,
-                'maxbytes' => 50000
+                'maxbytes' => 50000,
             ]
         );
 
@@ -245,7 +249,7 @@ class scan_settings_form extends dynamic_form {
 
         return new \moodle_url('/plagiarism/origai/scan_settings.php', [
             'contextid' => $contextid,
-            'cmid' => $cmid
+            'cmid' => $cmid,
         ]);
     }
 }

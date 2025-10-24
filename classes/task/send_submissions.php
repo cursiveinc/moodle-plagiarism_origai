@@ -82,7 +82,7 @@ class send_submissions extends \core\task\scheduled_task {
 
             $response = $originalityapi->batch_scan($batch);
             if (
-                $response === false || 
+                $response === false ||
                 (isset($response->success) && !$response->success) ||
                 !isset($response->success)
             ) {
@@ -125,17 +125,20 @@ class send_submissions extends \core\task\scheduled_task {
             $scanrecordids[] = $record->id;
         }
         $scansettingskeys = array_keys(plagiarism_origai_plugin_config::scan_setting_defaults());
-        $cmsettings = plagiarism_origai_plugin_config::get_cms_config($cmids, array_merge(['plagiarism_origai_ai_model'], $scansettingskeys));
+        $cmsettings = plagiarism_origai_plugin_config::get_cms_config(
+            $cmids, array_merge(['plagiarism_origai_ai_model'], $scansettingskeys)
+        );
         $omissionsettings = $this->get_omission_settings($cmsettings, $scansettingskeys);
 
         if (!plagiarism_origai_action::mark_scan_as_processing($scanrecordids)) {
             return $batch;
         }
-        $scanmeta = isset($record->meta)? json_decode($record->meta, true) : [];
+        $scanmeta = isset($record->meta) ? json_decode($record->meta, true) : [];
         foreach ($records as $record) {
             $payload = [
                 'title' => $record->title,
-                'ai_model' => $cmsettings[$record->cmid]['plagiarism_origai_ai_model'] ?? plagiarism_origai_plugin_config::get_default_model(),
+                'ai_model' => $cmsettings[$record->cmid]['plagiarism_origai_ai_model'] ??
+                plagiarism_origai_plugin_config::get_default_model(),
                 'content' => $record->content,
                 'scan_ai' => $record->scan_type == plagiarism_origai_scan_type_enums::AI,
                 'scan_plag' => $record->scan_type == plagiarism_origai_scan_type_enums::PLAGIARISM,
@@ -146,9 +149,9 @@ class send_submissions extends \core\task\scheduled_task {
                     "course_module" => $scanmeta['course_module'] ?? null,
                     "submission_date" => $scanmeta['submission_date'] ?? null,
                     "submission_ref" => $scanmeta['submission_ref'] ?? null,
-                    "submission_title" => $record->title
+                    "submission_title" => $record->title,
                 ],
-                'omission_settings' => $omissionsettings[$record->cmid]
+                'omission_settings' => $omissionsettings[$record->cmid],
             ];
             $batch[] = $payload;
         }
@@ -161,12 +164,11 @@ class send_submissions extends \core\task\scheduled_task {
      * @param array $scansettingskeys
      * @return array
      */
-    private function get_omission_settings($cmsettings, $scansettingskeys)
-    {
+    private function get_omission_settings($cmsettings, $scansettingskeys) {
         $scansettings = [];
         foreach ($cmsettings as $cmid => $cmsetting) {
             $scansettings[$cmid] = array_map(function($key)use($cmid, $cmsetting){
-                if($key == 'exclude_templates') {
+                if ($key == 'exclude_templates') {
                     $templateid = $cmsetting[$key] ?? plagiarism_origai_plugin_config::scan_setting_defaults()[$key];
                     $templates = [];
                     if ($templateid) {
@@ -181,7 +183,7 @@ class send_submissions extends \core\task\scheduled_task {
                     if ($excludedsurlsstring) {
                         $excludedsurls = preg_split('/\r\n|\r|\n/', trim($excludedsurlsstring));
                         $excludedsurls = array_values(array_filter(array_map('trim', $excludedsurls)));
-                    } 
+                    }
                     return $excludedsurls;
                 }
 

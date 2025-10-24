@@ -25,9 +25,11 @@ use core_privacy\local\request\writer;
 
 
 if (interface_exists('\core_privacy\local\request\core_userlist_provider')) {
-    interface core_userlist_provider extends \core_privacy\local\request\core_userlist_provider{}
+    interface core_userlist_provider extends \core_privacy\local\request\core_userlist_provider {
+    }
 } else {
-    interface core_userlist_provider {};
+    interface core_userlist_provider {
+    };
 }
 
 class provider implements
@@ -109,7 +111,7 @@ class provider implements
                 'total_text_score' => $submission->total_text_score,
                 'original_score' => $submission->original_score,
                 'ai_score' => $submission->ai_score,
-                'update_time' => $submission->update_time ? \core_privacy\local\request\transform::datetime(strtotime($submission->update_time)): null
+                'update_time' => $submission->update_time ? \core_privacy\local\request\transform::datetime(strtotime($submission->update_time)) : null,
             ];
         }
         $contextdata = helper::get_context_data($context, $user);

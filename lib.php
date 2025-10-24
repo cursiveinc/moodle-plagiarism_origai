@@ -216,7 +216,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
                     'title'       => $title,
                     'content'     => $content,
                     'contenthash' => plagiarism_origai_action::generate_content_hash($content),
-                    'meta' => $scanmeta
+                    'meta' => $scanmeta,
                 ]);
             }
 
@@ -249,24 +249,24 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
         );
 
         // Check if submission ref exists
-        if ($submissionRef = $this->get_submission_ref($responses[0])) {
+        if ($submissionref = $this->get_submission_ref($responses[0])) {
             $output .= html_writer::div(
                 html_writer::span(
-                    $submissionRef,
+                    $submissionref,
                     'd-inline-block text-truncate',
                     [
-                        'title' => $submissionRef
+                        'title' => $submissionref,
                     ]
                 ),
                 'badge badge-info d-block mt-',
                 [
-                    'style' => 'width: max-content; margin-top: .5rem;'
+                    'style' => 'width: max-content; margin-top: .5rem;',
                 ]
             );
         }
 
         static $loadedjs;
-        if(!$loadedjs){
+        if (!$loadedjs) {
             $PAGE->requires->js_call_amd('plagiarism_origai/scantrigger', 'init');
             $loadedjs = true;
         }
@@ -374,7 +374,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
      * @return string
      */
     public static function build_scan_failed_component($response, $modulename, $cmid, $returnurl = null, $failmsg = null) {
-        if(!$returnurl){
+        if (!$returnurl) {
             $returnurl = (isset($_SERVER['HTTPS']) ?
             "https" : "http") . "://{$_SERVER['HTTP_HOST']}{$_SERVER['REQUEST_URI']}";
         }
@@ -530,6 +530,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
     }
 
     /**
+     * Get submission ref
      * @param object $scan
      * @return string|null
      */
@@ -620,7 +621,7 @@ function plagiarism_origai_is_plugin_configured($modulename) {
  */
 function plagiarism_origai_coursemodule_standard_elements($formwrapper, $mform) {
     global $DB, $PAGE;
-    
+
     $context = context_course::instance($formwrapper->get_course()->id);
     $modulename = $formwrapper->get_current()->modulename;
 
@@ -674,7 +675,7 @@ function plagiarism_origai_coursemodule_standard_elements($formwrapper, $mform) 
 
         $mform->addElement(
             'html',
-            '<div class="col-md-9 offset-md-3 mb-3"><a href="#" id="open-scan-settings">' . 
+            '<div class="col-md-9 offset-md-3 mb-3"><a href="#" id="open-scan-settings">' .
             get_string('editscansettings', 'plagiarism_origai') . '</a></div>'
         );
 

@@ -217,7 +217,7 @@ class plagiarism_origai_plugin_config {
             'exclude_citations' => null,
             'exclude_references' => null,
             'exclude_urls' => '',
-            'exclude_templates' => null
+            'exclude_templates' => null,
         ];
     }
 
@@ -226,9 +226,8 @@ class plagiarism_origai_plugin_config {
      * @param int $cmid The course module id
      * @return array The saved scan properties
      */
-    public static function get_saved_scan_properties($cmid)
-    {
-        $cmsettings = plagiarism_origai_plugin_config::get_cm_config($cmid);
+    public static function get_saved_scan_properties($cmid) {
+        $cmsettings = self::get_cm_config($cmid);
         $defaults = static::scan_setting_defaults();
         $defaultkeys = array_keys($defaults);
         return array_map(function ($key) use ($cmsettings, $defaults) {
