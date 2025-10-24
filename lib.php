@@ -619,7 +619,8 @@ function plagiarism_origai_is_plugin_configured($modulename) {
  * @package plagiarism_origai
  */
 function plagiarism_origai_coursemodule_standard_elements($formwrapper, $mform) {
-    global $DB;
+    global $DB, $PAGE;
+    
     $context = context_course::instance($formwrapper->get_course()->id);
     $modulename = $formwrapper->get_current()->modulename;
 
@@ -628,6 +629,9 @@ function plagiarism_origai_coursemodule_standard_elements($formwrapper, $mform) 
     }
 
     if (has_capability('plagiarism/origai:enable', $context)) {
+        $cmid = optional_param('update', null, PARAM_INT);
+
+        $PAGE->requires->js_call_amd('plagiarism_origai/scan_settings_modal', 'init', [$context->id, $cmid]);
 
         // Return no form if the plugin isn't configured or not enabled.
         if (!plagiarism_origai_is_plugin_configured("mod_" . $modulename)) {
@@ -668,7 +672,12 @@ function plagiarism_origai_coursemodule_standard_elements($formwrapper, $mform) 
             get_string('allowstudentreportaccess', 'plagiarism_origai')
         );
 
-        $cmid = optional_param('update', null, PARAM_INT);
+        $mform->addElement(
+            'html',
+            '<div class="col-md-9 offset-md-3 mb-3"><a href="#" id="open-scan-settings">' . 
+            get_string('editscansettings', 'plagiarism_origai') . '</a></div>'
+        );
+
         $savedvalues = $DB->get_records_menu('plagiarism_origai_config', ['cm' => $cmid], '', 'name,value');
 
         $admindefaultmodel = plagiarism_origai_plugin_config::admin_config('aiModel');

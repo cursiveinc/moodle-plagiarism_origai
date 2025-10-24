@@ -488,4 +488,29 @@ class plagiarism_origai_action {
         }
         return null;
     }
+
+    /**
+     * Get exclude templates contents from files
+     * @param int $cmid
+     * @return array
+     */
+    public static function get_exclude_templates($cmid) {
+        $fs = get_file_storage();
+        $coursemodule = get_coursemodule_from_id('', $cmid);
+        $context = \context_course::instance($coursemodule->course);
+
+        $files = $fs->get_area_files(
+            $context->id,
+            'plagiarism_origai',   // component.
+            'exclude_templates',   // filearea.
+            $cmid,
+            'filename',
+            false                  // exclude directories.
+        );
+        $templates = [];
+        foreach ($files as $file) {
+            $templates[] = (new plagiarism_origai_text_extractor($file))->extract();
+        }
+        return $templates;
+    }
 }

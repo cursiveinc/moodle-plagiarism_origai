@@ -3,6 +3,7 @@ import * as config from 'core/config';
 export const init = () => {
     /**
      * Starts polling given scan ID and element
+     * @param {Element} pollElement - The element containing poll data attributes
      */
     const startPolling = (pollElement) => {
         const pollId = pollElement.getAttribute('data-plagiarism_origa-poll-scanid');
@@ -30,13 +31,16 @@ export const init = () => {
                 }
             }).then(response => response.json())
               .then(data => {
-                  if (data.status === 'completed') {
-                      clearInterval(pollIntervalId);
-                      pollElement.outerHTML = data.renderhtml;
-                  }
+                    if (data.status === 'completed') {
+                        clearInterval(pollIntervalId);
+                        pollElement.outerHTML = data.renderhtml;
+                    }
+                    return data;
               })
               .catch(error => {
-                  console.error('Polling error:', error);
+
+                    // eslint-disable-next-line no-console
+                    console.error('Polling error:', error);
               });
         };
 
@@ -57,6 +61,7 @@ export const init = () => {
         if (target && target.tagName == 'A') {
             event.preventDefault();
             if (!(target instanceof HTMLAnchorElement)) {
+                // eslint-disable-next-line no-console
                 console.warn("Target is not an anchor element");
                 return;
             }
@@ -98,6 +103,7 @@ export const init = () => {
                             startPolling(newPollEl);
                         } else {
                             if (config.display) {
+                                // eslint-disable-next-line no-console
                                 console.warn('No poll element found after scan trigger for scanId:', scanId);
                             }
                         }

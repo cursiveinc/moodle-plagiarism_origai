@@ -124,7 +124,9 @@ class send_submissions extends \core\task\scheduled_task {
             $cmids[] = $record->cmid;
             $scanrecordids[] = $record->id;
         }
-        $cmsettings = plagiarism_origai_plugin_config::get_cms_config($cmids, ['plagiarism_origai_ai_model']);
+        $scansettingskeys = array_keys(plagiarism_origai_plugin_config::scan_setting_defaults());
+        $cmsettings = plagiarism_origai_plugin_config::get_cms_config($cmids, array_merge(['plagiarism_origai_ai_model'], $scansettingskeys));
+        $omissionsettings = $this->get_omission_settings($cmsettings, $scansettingskeys);
 
         if (!plagiarism_origai_action::mark_scan_as_processing($scanrecordids)) {
             return $batch;
@@ -145,10 +147,47 @@ class send_submissions extends \core\task\scheduled_task {
                     "submission_date" => $scanmeta['submission_date'] ?? null,
                     "submission_ref" => $scanmeta['submission_ref'] ?? null,
                     "submission_title" => $record->title
-                ]
+                ],
+                'omission_settings' => $omissionsettings[$record->cmid]
             ];
             $batch[] = $payload;
         }
         return $batch;
+    }
+
+    /**
+     * Get omission settings for each course module
+     * @param array $cmsettings
+     * @param array $scansettingskeys
+     * @return array
+     */
+    private function get_omission_settings($cmsettings, $scansettingskeys)
+    {
+        $scansettings = [];
+        foreach ($cmsettings as $cmid => $cmsetting) {
+            $scansettings[$cmid] = array_map(function($key)use($cmid, $cmsetting){
+                if($key == 'exclude_templates') {
+                    $templateid = $cmsetting[$key] ?? plagiarism_origai_plugin_config::scan_setting_defaults()[$key];
+                    $templates = [];
+                    if ($templateid) {
+                        $templates = plagiarism_origai_action::get_exclude_templates($cmid);
+                    }
+                    return $templates;
+                }
+
+                if ($key == 'exclude_urls') {
+                    $excludedsurlsstring = $cmsetting[$key] ?? plagiarism_origai_plugin_config::scan_setting_defaults()[$key];
+                    $excludedsurls = [];
+                    if ($excludedsurlsstring) {
+                        $excludedsurls = preg_split('/\r\n|\r|\n/', trim($excludedsurlsstring));
+                        $excludedsurls = array_values(array_filter(array_map('trim', $excludedsurls)));
+                    } 
+                    return $excludedsurls;
+                }
+
+                return $cmsetting[$key] ?? plagiarism_origai_plugin_config::scan_setting_defaults()[$key];
+            }, array_combine($scansettingskeys, $scansettingskeys));
+        }
+        return $scansettings;
     }
 }

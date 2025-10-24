@@ -123,7 +123,7 @@ class plagiarism_origai_plugin_config {
      * @param int $cm The course module id
      * @param string $name The configuration name
      * @param string $default The default value to return if the configuration is not found
-     * @return string|null The configuration value
+     * @return array|string|null The configuration value
      */
     public static function get_cm_config($cm, $name = null, $default = null) {
         global $DB;
@@ -204,5 +204,35 @@ class plagiarism_origai_plugin_config {
     public static function clear_admin_config_cache() {
         $cache = cache::make('core', 'config');
         $cache->delete('plagiarism_origai');
+    }
+
+    /**
+     * Get scan settings and default values
+     * @return array The scan settings and default values
+     */
+    public static function scan_setting_defaults() {
+        return [
+            'exclude_toc' => null,
+            'exclude_quotes' => null,
+            'exclude_citations' => null,
+            'exclude_references' => null,
+            'exclude_urls' => '',
+            'exclude_templates' => null
+        ];
+    }
+
+    /**
+     * Get saved scan properties for the given course module id
+     * @param int $cmid The course module id
+     * @return array The saved scan properties
+     */
+    public static function get_saved_scan_properties($cmid)
+    {
+        $cmsettings = plagiarism_origai_plugin_config::get_cm_config($cmid);
+        $defaults = static::scan_setting_defaults();
+        $defaultkeys = array_keys($defaults);
+        return array_map(function ($key) use ($cmsettings, $defaults) {
+            return $cmsettings[$key] ?? $defaults[$key];
+        }, array_combine($defaultkeys, $defaultkeys));
     }
 }
