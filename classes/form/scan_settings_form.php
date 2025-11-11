@@ -118,20 +118,22 @@ class scan_settings_form extends dynamic_form {
             $urls = preg_split('/\r\n|\r|\n/', trim($data['exclude_urls']));
             $linenumber = 1;
 
-            foreach ($urls as $url) {
-                $url = trim($url);
-                if ($url === '') {
+            if ($urls) {
+                foreach ($urls as $url) {
+                    $url = trim($url);
+                    if ($url === '') {
+                        $linenumber++;
+                        continue;
+                    }
+
+                    // Validate URL format using PHP's built-in filter.
+                    if (!filter_var($url, FILTER_VALIDATE_URL)) {
+                        $errors['exclude_urls'] = get_string('invalidurl', 'plagiarism_origai', $linenumber);
+                        break; // stop at first invalid line.
+                    }
+
                     $linenumber++;
-                    continue;
                 }
-
-                // Validate URL format using PHP's built-in filter.
-                if (!filter_var($url, FILTER_VALIDATE_URL)) {
-                    $errors['exclude_urls'] = get_string('invalidurl', 'plagiarism_origai', $linenumber);
-                    break; // stop at first invalid line.
-                }
-
-                $linenumber++;
             }
         }
 
@@ -168,7 +170,7 @@ class scan_settings_form extends dynamic_form {
         $cmid = $this->optional_param('cmid', 0, PARAM_INT);
 
         // Save files from draft to permanent area.
-        if (!empty($data->exclude_templates)) {
+        if (!empty($data->exclude_templates) && $data) {
             file_save_draft_area_files(
                 $data->exclude_templates,
                 $context->id,
@@ -232,7 +234,6 @@ class scan_settings_form extends dynamic_form {
         $data->contextid = $context->id;
         $data->cmid = $cmid;
         $data->exclude_templates = $draftitemid;
-        file_put_contents(__DIR__ . '/form_data.json', 'data set: ' . json_encode($data) . PHP_EOL, FILE_APPEND);
 
         $this->set_data($data);
     }

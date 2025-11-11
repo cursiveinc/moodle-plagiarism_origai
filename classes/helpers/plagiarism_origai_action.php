@@ -496,7 +496,13 @@ class plagiarism_origai_action {
      */
     public static function get_exclude_templates($cmid) {
         $fs = get_file_storage();
+        if (!$fs) {
+            return [];
+        }
         $coursemodule = get_coursemodule_from_id('', $cmid);
+        if (!$coursemodule) {
+            return [];
+        }
         $context = \context_course::instance($coursemodule->course);
 
         $files = $fs->get_area_files(
