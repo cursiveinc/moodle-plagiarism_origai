@@ -178,7 +178,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
         );
         $scanmeta = plagiarism_origai_action::construct_scan_meta(
             $coursemodule->name,
-            get_string('quiz', 'plagiarism_origai'),
+            get_string($coursemodule->modname, 'plagiarism_origai'),
             $userid,
             $course->shortname,
             $submissiondate,

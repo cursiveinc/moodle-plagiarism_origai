@@ -470,21 +470,27 @@ class plagiarism_origai_action {
                 'id' => $itemId,
                 'userid'     => $userid
             ], 'id, timemodified', IGNORE_MISSING);
-            return $submission->timemodified;
+            if ($submission) {
+                return $submission->timemodified;
+            }
         }
         if ($modname == 'quiz'){
             $submission = $DB->get_record('quiz_attempts', [
                 'id' => $itemId,
                 'userid'     => $userid
             ], 'id, timefinish, timemodified', IGNORE_MISSING);
-            return $submission->timefinish == 0 ? $submission->timemodified : $submission->timefinish;
+            if ($submission) {
+                return $submission->timefinish == 0 ? $submission->timemodified : $submission->timefinish;
+            }
         }
         if ($modname == 'forum'){
             $submission = $DB->get_record('forum_posts', [
                 'id' => $itemId,
                 'userid'     => $userid
             ], 'id, modified', IGNORE_MISSING);
-            return $submission->modified;
+            if ($submission) {
+                return $submission->modified;
+            }
         }
         return null;
     }
