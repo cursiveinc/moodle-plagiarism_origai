@@ -129,8 +129,8 @@ class send_submissions extends \core\task\scheduled_task {
         if (!plagiarism_origai_action::mark_scan_as_processing($scanrecordids)) {
             return $batch;
         }
-        $scanmeta = isset($record->meta)? json_decode($record->meta, true) : [];
         foreach ($records as $record) {
+            $scanmeta = isset($record->meta)? json_decode($record->meta, true) : [];
             $payload = [
                 'title' => $record->title,
                 'ai_model' => $cmsettings[$record->cmid]['plagiarism_origai_ai_model'] ?? plagiarism_origai_plugin_config::get_default_model(),
