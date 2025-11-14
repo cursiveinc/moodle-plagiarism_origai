@@ -176,6 +176,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
             $itemid,
             $userid
         );
+        $submissiondate = plagiarism_origai_action::format_submission_timestamp($submissiondate ?? time());
         $scanmeta = plagiarism_origai_action::construct_scan_meta(
             $coursemodule->name,
             get_string($coursemodule->modname, 'plagiarism_origai'),

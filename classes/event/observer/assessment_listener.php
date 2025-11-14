@@ -250,7 +250,7 @@ class assessment_listener {
                 plagiarism_origai_scan_type_enums::AI,
             ];
 
-            $submissiondate = plagiarism_origai_action::format_submission_timestamp($forumpost->modified);
+            $submissiondate = plagiarism_origai_action::format_submission_timestamp($forumpost->modified ?? time());
 
             if (!empty($eventdata['other']['content'])) {
                 $scanmeta = plagiarism_origai_action::construct_scan_meta(
