@@ -6,6 +6,7 @@
 
 **Merged pull requests:**
 
+- Update changelog [\#24](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/24) ([github-actions[bot]](https://github.com/apps/github-actions))
 - Dev - Plagiarism Data repository [\#23](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/23) ([emlycool](https://github.com/emlycool))
 - Sync Main to dev [\#22](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/22) ([emlycool](https://github.com/emlycool))
 - Update changelog [\#21](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/21) ([github-actions[bot]](https://github.com/apps/github-actions))
