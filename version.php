@@ -24,12 +24,12 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'plagiarism_origai';
-$plugin->version = 2025111302;
+$plugin->version = 2025112000;
 $plugin->requires = 2020061500;
 $plugin->supported = [
     39,
     500,
 ];
 $plugin->release   = '2.2.0';
-$plugin->maturity  = MATURITY_ALPHA;
+$plugin->maturity  = MATURITY_STABLE;
 $plugin->cron      = 0;
