@@ -171,7 +171,20 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
         }
 
         $responses = [];
-
+        $submissiondate = plagiarism_origai_action::get_submission_date(
+            $modulename,
+            $itemid,
+            $userid
+        );
+        $submissiondate = plagiarism_origai_action::format_submission_timestamp($submissiondate ?? time());
+        $scanmeta = plagiarism_origai_action::construct_scan_meta(
+            $coursemodule->name,
+            get_string($coursemodule->modname, 'plagiarism_origai'),
+            $userid,
+            $course->shortname,
+            $submissiondate,
+            \core\uuid::generate()
+        );
         foreach ([
                 plagiarism_origai_scan_type_enums::PLAGIARISM,
                 plagiarism_origai_scan_type_enums::AI,
@@ -204,6 +217,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
                     'title'       => $title,
                     'content'     => $content,
                     'contenthash' => plagiarism_origai_action::generate_content_hash($content),
+                    'meta' => $scanmeta
                 ]);
             }
 
@@ -234,6 +248,23 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
             ),
             'origai-logo-container'
         );
+
+        // Check if submission ref exists
+        if ($submissionRef = $this->get_submission_ref($responses[0])) {
+            $output .= html_writer::div(
+                html_writer::span(
+                    $submissionRef,
+                    'd-inline-block text-truncate',
+                    [
+                        'title' => $submissionRef
+                    ]
+                ),
+                'badge badge-info d-block mt-',
+                [
+                    'style' => 'width: max-content; margin-top: .5rem;'
+                ]
+            );
+        }
 
         static $loadedjs;
         if(!$loadedjs){
@@ -497,6 +528,21 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
         $output .= html_writer::end_div(); // d-flex.
         $output .= html_writer::end_div(); // origai-section.
         return $output;
+    }
+
+    /**
+     * @param object $scan
+     * @return string|null
+     */
+    private function get_submission_ref($scan) {
+        if (!isset($scan->meta)) {
+            return null;
+        }
+        $meta = json_decode($scan->meta);
+        if (json_last_error() !== JSON_ERROR_NONE || $meta === null) {
+            return null;
+        }
+        return isset($meta->submission_ref) ? $meta->submission_ref : null;
     }
 
     /**

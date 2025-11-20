@@ -81,7 +81,11 @@ class send_submissions extends \core\task\scheduled_task {
             $batch = $this->prepare_batch($queuedsubmissions);
 
             $response = $originalityapi->batch_scan($batch);
-            if ($response === false || (isset($response->success) && !$response->success)) {
+            if (
+                $response === false || 
+                (isset($response->success) && !$response->success) ||
+                !isset($response->success)
+            ) {
 
                 $errormessage = isset($response->message) ?
                     $response->message : get_string('defaultscanerror', 'plagiarism_origai');
@@ -126,12 +130,22 @@ class send_submissions extends \core\task\scheduled_task {
             return $batch;
         }
         foreach ($records as $record) {
+            $scanmeta = isset($record->meta)? json_decode($record->meta, true) : [];
             $payload = [
                 'title' => $record->title,
                 'ai_model' => $cmsettings[$record->cmid]['plagiarism_origai_ai_model'] ?? plagiarism_origai_plugin_config::get_default_model(),
                 'content' => $record->content,
                 'scan_ai' => $record->scan_type == plagiarism_origai_scan_type_enums::AI,
                 'scan_plag' => $record->scan_type == plagiarism_origai_scan_type_enums::PLAGIARISM,
+                'meta' => [
+                    'activity_name' => $scanmeta['activity_name'] ?? null,
+                    "activity_type" => $scanmeta['activity_type'] ?? null,
+                    'author_id' => isset($scanmeta['author_id']) ? (string)$scanmeta['author_id'] : null,
+                    "course_module" => $scanmeta['course_module'] ?? null,
+                    "submission_date" => $scanmeta['submission_date'] ?? null,
+                    "submission_ref" => $scanmeta['submission_ref'] ?? null,
+                    "submission_title" => $record->title
+                ]
             ];
             $batch[] = $payload;
         }

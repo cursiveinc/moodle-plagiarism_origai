@@ -165,7 +165,7 @@ class plagiarism_origai_api {
             }
             return json_decode($responsebody);
         } catch (\Throwable $th) {
-            debugging("Batch scan failed: " . $th->getMessage());
+            debugging("Report retrieval failed: " . $th->getMessage());
             return false;
         }
     }
