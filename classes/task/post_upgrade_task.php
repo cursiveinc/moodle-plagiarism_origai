@@ -1,5 +1,5 @@
 <?php
-// This file is part of Moodle - http://moodle.org/
+// This file is part of the plagiarism_origai plugin for Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -15,21 +15,31 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Task schedule configuration for the plagiarism_origai plugin.
+ *  DOC -  https://moodledev.io/docs/5.1/apis/subsystems/task/adhoc
  * @package   plagiarism_origai
  * @category  plagiarism
  * @copyright Originality.ai, https://originality.ai
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+namespace plagiarism_origai\task;
 
-$plugin->component = 'plagiarism_origai';
-$plugin->version = 2025120900;
-$plugin->requires = 2020061500;
-$plugin->supported = [
-    39,
-    500,
-];
-$plugin->release   = '2.2.1';
-$plugin->maturity  = MATURITY_STABLE;
-$plugin->cron      = 0;
+use plagiarism_origai\helpers\plagiarism_origai_api;
+
+/**
+ * Class post_upgrade_task — handles post install/upgrades actions
+ * @package plagiarism_origai\task
+ */
+class post_upgrade_task extends \core\task\adhoc_task {
+
+    /**
+     * Execute the task.
+     *
+     * @throws \coding_exception
+     */
+    public function execute() {
+        $originalityapi = new plagiarism_origai_api();
+        $originalityapi->integration_upgrade_data_sync();
+    }
+}

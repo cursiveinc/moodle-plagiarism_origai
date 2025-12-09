@@ -1,5 +1,5 @@
 <?php
-// This file is part of Moodle - http://moodle.org/
+// This file is part of Moodle - https://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -12,24 +12,19 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+// along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
 
 /**
+ * Install for plagiarism_origai
  * @package   plagiarism_origai
  * @category  plagiarism
  * @copyright Originality.ai, https://originality.ai
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
-
-$plugin->component = 'plagiarism_origai';
-$plugin->version = 2025120900;
-$plugin->requires = 2020061500;
-$plugin->supported = [
-    39,
-    500,
-];
-$plugin->release   = '2.2.1';
-$plugin->maturity  = MATURITY_STABLE;
-$plugin->cron      = 0;
+/**
+ * Post installation procedure
+ */
+function xmldb_plagiarism_origai_install() {
+    \core\task\manager::queue_adhoc_task(new \plagiarism_origai\task\post_upgrade_task());
+}

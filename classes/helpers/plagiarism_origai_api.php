@@ -110,6 +110,35 @@ class plagiarism_origai_api {
     }
 
     /**
+     * Post install/upgrade data sync 
+     */
+    public function integration_upgrade_data_sync() {
+        global $CFG;
+        $httpclient = new plagiarism_origai_http_client();
+        $httpclient->set_timeout(15);
+        $domain = (new \moodle_url('/'))->out(false);
+        $pluginversion = plagiarism_origai_plugin_config::admin_config('version');
+        $moodleversion = $CFG->version;
+
+        try {
+
+            $response = $httpclient->post(
+                $this->baseurl . '/moodle/integration/installs',
+                [
+                    "domain" => $domain,
+                    "plugin_version" => $pluginversion,
+                    "moodle_version" => $moodleversion,
+                ],
+                ['X-OAI-API-KEY' => $this->apikey]
+            );
+
+            return $response[1] == static::RESPONSEOK;
+        } catch (\Throwable $th) {
+            return false;
+        }
+    }
+
+    /**
      * Scan a batch of content with the originality API
      * @param array $batch
      * @return object|false
