@@ -150,5 +150,7 @@ function xmldb_plagiarism_origai_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025091900, 'plagiarism', 'origai');
     }
 
+    \core\task\manager::queue_adhoc_task(new \plagiarism_origai\task\post_upgrade_task());
+
     return $result;
 }
