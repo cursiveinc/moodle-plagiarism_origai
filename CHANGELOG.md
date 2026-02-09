@@ -1,5 +1,15 @@
 # Changelog
 
+## [v2.2.2](https://github.com/cursiveinc/moodle-plagiarism_origai/tree/v2.2.2) (2026-02-09)
+
+[Full Changelog](https://github.com/cursiveinc/moodle-plagiarism_origai/compare/v2.2.1...v2.2.2)
+
+**Merged pull requests:**
+
+- Dev [\#30](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/30) ([emlycool](https://github.com/emlycool))
+- Fix/compatibility [\#29](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/29) ([emlycool](https://github.com/emlycool))
+- Update changelog [\#28](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/28) ([github-actions[bot]](https://github.com/apps/github-actions))
+
 ## [v2.2.1](https://github.com/cursiveinc/moodle-plagiarism_origai/tree/v2.2.1) (2025-12-09)
 
 [Full Changelog](https://github.com/cursiveinc/moodle-plagiarism_origai/compare/v2.2.0...v2.2.1)
