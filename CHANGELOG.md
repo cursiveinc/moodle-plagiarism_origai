@@ -6,6 +6,7 @@
 
 **Merged pull requests:**
 
+- Update changelog [\#27](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/27) ([github-actions[bot]](https://github.com/apps/github-actions))
 - integration data update post install and upgrade [\#26](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/26) ([emlycool](https://github.com/emlycool))
 
 ## [v2.2.0](https://github.com/cursiveinc/moodle-plagiarism_origai/tree/v2.2.0) (2025-11-20)
