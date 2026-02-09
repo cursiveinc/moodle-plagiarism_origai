@@ -24,7 +24,6 @@
 require(dirname(dirname(__FILE__)) . '/../config.php');
 require_once('../origai/lib.php');
 
-use core\output\html_writer;
 use plagiarism_origai\helpers\plagiarism_origai_plugin_config;
 
 // Get url params.
