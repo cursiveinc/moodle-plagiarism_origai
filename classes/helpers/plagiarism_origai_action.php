@@ -129,7 +129,7 @@ class plagiarism_origai_action {
             global $DB;
             $table = "plagiarism_origai_plagscan";
 
-            if (is_array($record->meta) || is_object($record->meta)) {
+            if (isset($record->meta) && (is_array($record->meta) || is_object($record->meta))) {
                 $record->meta = json_encode($record->meta);
             }
 

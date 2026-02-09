@@ -95,7 +95,7 @@ class plagiarism_setup_form extends moodleform {
             get_string('accountconfig', 'plagiarism_origai')
         );
 
-        $mform->addElement('text', 'apiurl', get_string('apiurl', 'plagiarism_origai'));
+        $mform->addElement('text', 'apiurl', get_string('apiurl', 'plagiarism_origai'), ['style' => 'width:75%;']);
         $mform->setType('apiurl', PARAM_TEXT);
         $mform->addRule('apiurl', get_string('apiurlrequired', 'plagiarism_origai'), 'required');
 
@@ -110,6 +110,7 @@ class plagiarism_setup_form extends moodleform {
             'html',
             '<div class="form-group row fitem"><div class="col-md-12 col-form-label">'
             .get_string("apikeyhelp", "plagiarism_origai")
+            .'</div></div>'
         );
 
         $this->add_action_buttons(true);

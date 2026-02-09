@@ -38,6 +38,7 @@
         <FIELD NAME="update_time" TYPE="datetime" NOTNULL="false" SEQUENCE="false"/>
         <FIELD NAME="status" TYPE="char" LENGTH="191" NOTNULL="false" SEQUENCE="false" COMMENT="State management of a scan"/>
         <FIELD NAME="contenthash" TYPE="char" LENGTH="191" NOTNULL="false" SEQUENCE="false"/>
+        <FIELD NAME="meta" TYPE="text" NOTNULL="false" SEQUENCE="false" COMMENT="submission meta information"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

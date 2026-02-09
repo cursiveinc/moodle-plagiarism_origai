@@ -1,12 +1,38 @@
 # Changelog
 
+## [v2.2.1](https://github.com/cursiveinc/moodle-plagiarism_origai/tree/v2.2.1) (2025-12-09)
+
+[Full Changelog](https://github.com/cursiveinc/moodle-plagiarism_origai/compare/v2.2.0...v2.2.1)
+
+**Merged pull requests:**
+
+- integration data update post install and upgrade [\#26](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/26) ([emlycool](https://github.com/emlycool))
+
+## [v2.2.0](https://github.com/cursiveinc/moodle-plagiarism_origai/tree/v2.2.0) (2025-11-20)
+
+[Full Changelog](https://github.com/cursiveinc/moodle-plagiarism_origai/compare/v2.1.0...v2.2.0)
+
+**Merged pull requests:**
+
+- Update changelog [\#24](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/24) ([github-actions[bot]](https://github.com/apps/github-actions))
+- Dev - Plagiarism Data repository [\#23](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/23) ([emlycool](https://github.com/emlycool))
+- Sync Main to dev [\#22](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/22) ([emlycool](https://github.com/emlycool))
+- Update changelog [\#21](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/21) ([github-actions[bot]](https://github.com/apps/github-actions))
+
 ## [v2.1.0](https://github.com/cursiveinc/moodle-plagiarism_origai/tree/v2.1.0) (2025-09-02)
 
-[Full Changelog](https://github.com/cursiveinc/moodle-plagiarism_origai/compare/v2.0.1...v2.1.0)
+[Full Changelog](https://github.com/cursiveinc/moodle-plagiarism_origai/compare/v2.0.2...v2.1.0)
 
 **Merged pull requests:**
 
 - chore: minor version bump for newly added languages support [\#20](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/20) ([emlycool](https://github.com/emlycool))
+
+## [v2.0.2](https://github.com/cursiveinc/moodle-plagiarism_origai/tree/v2.0.2) (2025-08-28)
+
+[Full Changelog](https://github.com/cursiveinc/moodle-plagiarism_origai/compare/v2.0.1...v2.0.2)
+
+**Merged pull requests:**
+
 - Localization for multiple languages [\#18](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/18) ([emlycool](https://github.com/emlycool))
 - Update changelog [\#17](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/17) ([github-actions[bot]](https://github.com/apps/github-actions))
 - Update changelog [\#16](https://github.com/cursiveinc/moodle-plagiarism_origai/pull/16) ([github-actions[bot]](https://github.com/apps/github-actions))

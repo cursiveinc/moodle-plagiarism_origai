@@ -26,7 +26,6 @@ defined('MOODLE_INTERNAL') || die();
 global $CFG;
 require_once($CFG->dirroot . '/plagiarism/lib.php');
 
-use core\output\html_writer;
 use plagiarism_origai\helpers\plagiarism_origai_plugin_config;
 use plagiarism_origai\helpers\plagiarism_origai_text_extractor;
 use plagiarism_origai\helpers\plagiarism_origai_action;
@@ -69,7 +68,7 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
                 }
                 $textextractor = new plagiarism_origai_text_extractor($linkarray['file']);
                 if (!$textextractor->is_mime_type_supported()) {
-                    throw new \core\exception\moodle_exception(
+                    throw new \moodle_exception(
                         get_string('fileattachmentnotsupported', 'plagiarism_origai')
                     );
                 }
@@ -77,11 +76,11 @@ class plagiarism_plugin_origai extends plagiarism_plugin {
                 if ($extractedtext) {
                     $content = $extractedtext;
                 } else {
-                    throw new \core\exception\moodle_exception(
+                    throw new \moodle_exception(
                         get_string('textextractionfailed', 'plagiarism_origai')
                     );
                 }
-            } catch (\core\exception\moodle_exception $e) {
+            } catch (\moodle_exception $e) {
                 $fileerror = $e->getMessage();
                 $content = "";
             } catch (\Throwable $e) {

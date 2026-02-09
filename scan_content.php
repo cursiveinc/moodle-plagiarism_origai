@@ -47,6 +47,12 @@ $coursemodule = get_coursemodule_from_id($modulename, $cmid);
 $context = context_course::instance($coursemodule->course);
 
 $scan = plagiarism_origai_action::get_scan_record_by_id($scanid);
+$PAGE->set_context($context);
+$PAGE->set_url(new \moodle_url('/plagiarism/origai/scan_content.php', [
+    'cmid' => $cmid,
+    'scanid' => $scanid,
+    'coursemodule' => $modulename,
+]));
 
 if(
     !$context ||

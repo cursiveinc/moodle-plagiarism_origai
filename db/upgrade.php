@@ -135,7 +135,7 @@ function xmldb_plagiarism_origai_upgrade($oldversion) {
         upgrade_plugin_savepoint(true, 2025071800, 'plagiarism', 'origai');
     }
 
-    if ($oldversion < 2025091900) {
+    if ($oldversion < 2026020900) {
 
         // Define field meta to be added to plagiarism_origai_plagscan.
         $table = new xmldb_table('plagiarism_origai_plagscan');
@@ -147,7 +147,7 @@ function xmldb_plagiarism_origai_upgrade($oldversion) {
         }
 
         // Origai savepoint reached.
-        upgrade_plugin_savepoint(true, 2025091900, 'plagiarism', 'origai');
+        upgrade_plugin_savepoint(true, 2026020900, 'plagiarism', 'origai');
     }
 
     \core\task\manager::queue_adhoc_task(new \plagiarism_origai\task\post_upgrade_task());

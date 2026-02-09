@@ -63,7 +63,7 @@ switch ($mode) {
         resubmit_single_failed_scan($scanid, $returnurl);
         break;
     default:
-        throw new \core\exception\invalid_parameter_exception("param(mode) is invalid");
+        throw new \invalid_parameter_exception("param(mode) is invalid");
 }
 
 
